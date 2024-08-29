@@ -35,26 +35,18 @@ From: osrf/ros:humble-desktop
 	apt-get install -y ros-humble-xacro
 	apt-get install -y ros-humble-rqt*
 
-	echo ${SINGULARITY_ROOTFS}
-	echo "${SINGULARITY_ROOTFS}/cirp_ws/src"
-
     # Clone MiR repo
 	bash -c "cd ${SINGULARITY_ROOTFS}/cirp_ws/src \
 		&& git clone -b ros2 https://github.com/mintar/mir_robot.git"
 
+	# Clone depending repos through vcs
+	# Install all necessary packages
     bash -c "cd ${SINGULARITY_ROOTFS}/cirp_ws \
 		&& ls \
 		&& vcs import ${SINGULARITY_ROOTFS}/cirp_ws/src < ${SINGULARITY_ROOTFS}/cirp_ws/src/mir_robot/ros2.repos --recursive \
         && rosdep update --rosdistro $ROS_DISTRO \
 	    && rosdep install --from-paths src --ignore-src -r -y --rosdistro $ROS_DISTRO \
 	 	&& source /opt/ros/humble/setup.bash"
-
-	# Firstly, set environmental variables for the dependency and build process
-	# Secondly, install dependecies through rosdep 
-	# bash -c "cd /cirp_ws \
-	# 	&& rosdep update \
-	# 	&& rosdep install --from-paths src --ignore-src  -y \
-	# 	&& source /opt/ros/humble/setup.bash"
 		
 	# Workaround against some incompatible section in library
 	# If this is not included Gazebo will just crash during startup
@@ -65,107 +57,6 @@ From: osrf/ros:humble-desktop
 	# # The script will use the set environmental variables
 	exec /bin/bash -rcfile pipeline_exe.sh
 
-
-	
-	# # Param: TASK | Mandatory
-	# # This param defines which launch file will be started using the task_exe.sh
-	# if [ -z $1 ]
-	# then
-	# 	echo "Parameter 1 - task name - is missing"
-	# 	exit
-	# fi
-	# export TASK="$1"
-	
-	# # Param: X_POSITION | Optional
-	# # This param will be used if the user is able to manually move the starting position of the robot (f.e. labyrinth)
-	# if [ -z $2 ]
-	# then
-	# 	echo "Parameter 2 - custom robot x-position - setting to default"
-	# 	# Export nothing. This will later help us to see what parameter to pick, default or manual set.
-	# else
-	# 	export X_POSITION="$2"
-	# fi
-
-	# # Param: Y_POSITION | Optional
-	# # This param will be used if the user is able to manually move the starting position of the robot (f.e. labyrinth)
-	# if [ -z $3 ]
-	# then
-	# 	echo "Parameter 3 - custom robot y-position - setting to default"
-	# 	# Export nothing. This will later help us to see what parameter to pick, default or manual set.
-	# else
-	# 	export Y_POSITION="$3"
-	# fi
-	
-	# # Param: YAW_ORIENTATION | Optional
-	# # This param will be used if the user is able to manually move the starting position of the robot (f.e. labyrinth)
-	# if [ -z $4 ]
-	# then
-	# 	echo "Parameter 4 - custom robot yaw-orientation - setting to default"
-	# 	# Export nothing. This will later help us to see what parameter to pick, default or manual set.
-	# else
-	# 	export YAW_ORIENTATION="$4"
-	# fi
-
-	# # Execute the script which will start the right launch file
-	# # The script will use the set environmental variables
-	# exec /bin/bash -rcfile task_exe.sh
-
-    # # Print a nice match-Logo
-    # echo "                                                                                
-    #                                         @@@@                   @@@@@          
-    #                                         @@@@                   @@@@@          
-    # @@@@@@@@@@@@@@@@@@@   @@@@@@@@@@@@@  @@@@@@@@@@@   @@@@@@@@@@@ @@@@@@@@@@@@@@ 
-    # @@@@   @@@@@   @@@@@           @@@@@    @@@@      @@@@@        @@@@@     @@@@ 
-    # @@@@   @@@@@    @@@@  @@@@@@@@@@@@@@    @@@@     @@@@@         @@@@@     @@@@ 
-    # @@@@   @@@@@    @@@@ @@@@       @@@@    @@@@      @@@@         @@@@@     @@@@ 
-    # @@@@   @@@@@    @@@@  @@@@@@@@@@@@@@    @@@@@@@@   @@@@@@@@@@@ @@@@@     @@@@ 
-    #                                                                                 "
-
-    # # Source ros enviroment
-    # echo "Sourcing environment now..."
-
-    # if [ -f "/opt/ros/humble/setup.bash" ]
-    # then
-    #     source /opt/ros/humble/setup.bash
-    # fi
-
-    # if [ -f "${SINGULARITY_ROOTFS}/cirp_ws/install/setup.bash" ]
-    # then
-    #     source ${SINGULARITY_ROOTFS}/cirp_ws/install/setup.bash
-    # fi
-
-    # # This setting is absolutly mandatory for the cluster!
-    # # The cluster is not blocking or ROS messages from one user to the other
-    # # If this is not set other users can see my topics and also the simulations mess each other up (time jump detected)
-    # # This prevents it in a nices way than running "singularity run --net --network none match-dt-tasks.sif XX"
-    # export ROS_LOCALHOST_ONLY=1
-
-    # # if [ $1 == "rebuild" ] # Remove existing built components and build all packages in tasks_ws workspace
-    # # then
-    # #     rm -rf ${SINGULARITY_ROOTFS}/tasks_ws/install
-    # #     rm -rf ${SINGULARITY_ROOTFS}/tasks_ws/build
-    # #     rm -rf ${SINGULARITY_ROOTFS}/tasks_ws/log
-    # #     cd ${SINGULARITY_ROOTFS}/tasks_ws  
-        
-    # #     # The building of these packages specificly is necessary due to their bad handling of dependencies.
-    # #     # Described here: https://github.com/micro-ROS/micro-ROS-Agent/issues/161
-    # #     # They both want to clone something during build, which is not possible due to no internet connection
-    # #     colcon build --symlink-install --packages-select microxrcedds_agent --event-handler console_direct+ --cmake-args -DUAGENT_P2P_PROFILE=OFF -DUAGENT_CED_PROFILE=OFF -DUAGENT_USE_SYSTEM_FASTDDS:BOOL=ON -DUAGENT_USE_SYSTEM_FASTCDR:BOOL=ON -DUAGENT_BUILD_EXECUTABLE=OFF -DUAGENT_ISOLATED_INSTALL:BOOL=OFF
-    # #     source install/local_setup.bash
-    # #     colcon build --symlink-install --packages-up-to micro_ros_agent --event-handler console_direct+ --cmake-args -DMICROROSAGENT_SUPERBUILD=OFF
-    # #     source install/local_setup.bash
-        
-    # #     # Normal build process
-    # #     colcon build --symlink-install
-    # # else
-    # #     ros2 launch mir_navigation mir_nav_sim_launch.py world:=maze
-    # # fi
-
-    # cd ${SINGULARITY_ROOTFS}/cirp_ws  
-    # colcon build --symlink-install
-    # source ${SINGULARITY_ROOTFS}/cirp_ws/install/setup.bash
-
-	
 %labels
     Author Henrik Lurz
     Version v0.1.0

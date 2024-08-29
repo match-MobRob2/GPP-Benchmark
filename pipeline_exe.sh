@@ -7,8 +7,8 @@ echo "
 @@@@   @@@@@    @@@@  @@@@@@@@@@@@@@    @@@@     @@@@@         @@@@@     @@@@ 
 @@@@   @@@@@    @@@@ @@@@       @@@@    @@@@      @@@@         @@@@@     @@@@ 
 @@@@   @@@@@    @@@@  @@@@@@@@@@@@@@    @@@@@@@@   @@@@@@@@@@@ @@@@@     @@@@ 
-                                                                                "
-
+                                                                            "
+                                                                            
 # Source ros enviroment
 echo "Sourcing environment now..."
 
@@ -64,6 +64,6 @@ source /$HOME/cirp_ws/install/setup.bash
 
 ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze &
 ros2 launch mir_navigation amcl.py use_sim_time:=true map:=$(ros2 pkg prefix mir_gazebo)/share/mir_gazebo/maps/maze.yaml &
-ros2 run rviz2 rviz2
+ros2 launch mir_navigation navigation.py use_sim_time:=true
 wait
 exit
