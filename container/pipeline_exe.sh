@@ -8,7 +8,7 @@ echo "
 @@@@   @@@@@    @@@@ @@@@       @@@@    @@@@      @@@@         @@@@@     @@@@ 
 @@@@   @@@@@    @@@@  @@@@@@@@@@@@@@    @@@@@@@@   @@@@@@@@@@@ @@@@@     @@@@ 
                                                                             "
-                                                                            
+
 # Source ros enviroment
 echo "Sourcing environment now..."
 
@@ -24,7 +24,29 @@ then
     source /cirp_ws/install/setup.bash
 fi
 
-echo "2"
+if [[ $TASK == "copy" ]]
+then
+    cp -r /cirp_ws /$HOME
+
+elif [[ $TASK == "rebuild" ]]
+then
+    echo "rebuild"
+elif [[ $TASK == "start" ]]
+then
+    cd /$HOME/cirp_ws
+    
+    echo "Start Pipeline"
+    colcon build
+    source install/setup.bash
+    ros2 pkg prefix mir_gazebo
+    ros2 launch gpp_pipeline pipeline.launch.py
+    # python3 $HOME/cirp_ws/src/GloPaPlan-Testing-Pipeline/pipeline/pipeline.py
+    # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze
+elif [[ $TASK == "test" ]]
+then
+    echo "test"
+fi
+
 
 # This setting is absolutly mandatory for the cluster!
 # The cluster is not blocking or ROS messages from one user to the other
@@ -56,14 +78,15 @@ export ROS_LOCALHOST_ONLY=1
 # Copy the ws build in container to user folder
 # cp -r /cirp_ws /$HOME
 
-cd /$HOME/cirp_ws
+# cd /$HOME/cirp_ws
 
-colcon build
+# colcon build
 
-source /$HOME/cirp_ws/install/setup.bash
+# source /$HOME/cirp_ws/install/setup.bash
 
-ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze &
-ros2 launch mir_navigation amcl.py use_sim_time:=true map:=$(ros2 pkg prefix mir_gazebo)/share/mir_gazebo/maps/maze.yaml &
-ros2 launch mir_navigation navigation.py use_sim_time:=true
+# ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze &
+# ros2 launch mir_navigation amcl.py use_sim_time:=true map:=$(ros2 pkg prefix mir_gazebo)/share/mir_gazebo/maps/maze.yaml &
+# ros2 launch mir_navigation navigation.py use_sim_time:=true
+
 wait
 exit

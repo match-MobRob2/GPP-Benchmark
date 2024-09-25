@@ -53,9 +53,18 @@ From: osrf/ros:humble-desktop
 	strip --remove-section=.note.ABI-tag /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.15.3
 
 %runscript
-	# # Execute the script which will start the right launch file
-	# # The script will use the set environmental variables
-	exec /bin/bash -rcfile pipeline_exe.sh
+	# Param: TASK | Mandatory
+	# This param defines which launch file will be started using the pipeline_exe.sh
+	if [ -z $1 ]
+	then
+		echo "Parameter 1 - task name - is missing"
+		exit
+	fi
+	export TASK="$1"
+
+	# Execute the script which will start the right launch file
+	# The script will use the set environmental variables
+	exec /bin/bash -rcfile -c pipeline_exe.sh
 
 %labels
     Author Henrik Lurz

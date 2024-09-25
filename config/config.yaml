@@ -1,0 +1,15 @@
+map_name: "test.yaml"
+map_package: "mir_gazebo"
+
+robot_launch_file: "robot.launch"
+robot_launch_package: "mir_gazebo"
+
+number_of_tests: 10
+
+robot_spawn_position_x: 0.0
+robot_spawn_position_y: 0.0
+robot_spawn_orientation_yaw: 0.0
+
+robot_target_position_x: 0.0
+robot_target_position_y: 0.0
+robot_target_orientation_yaw: 0.0
