@@ -39,8 +39,6 @@ class PipelineConfig:
         pass
     
     def import_config(self) -> None:
-
-        print(FindPackageShare("dt_gazebo").__str__())
         # Get directory the script is in
         file_dir: str = os.path.dirname(os.path.realpath(__file__))
         # Get file path but with /../ in the middle
