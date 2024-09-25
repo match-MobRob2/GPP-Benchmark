@@ -1,4 +1,6 @@
-map_name: "test.yaml"
+world_name: "maze.world"
+world_package: "mir_gazebo"
+map_name: "maze.yaml"
 map_package: "mir_gazebo"
 
 robot_launch_file: "robot.launch"

@@ -15,10 +15,13 @@ from launch.substitutions import (
 from launch_ros.substitutions import FindPackageShare
 
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from ament_index_python.packages import get_package_share_directory
 
 # from utils.pipeline_config import PipelineConfig
 
 class PipelineConfig:
+    world_name: str
+    world_package: str
     map_name: str
     map_package: str
 
@@ -48,7 +51,8 @@ class PipelineConfig:
 
         with open(config_path, 'r') as file:
             config_data = yaml.safe_load(file)
-            
+            self.world_name = config_data["world_name"]
+            self.world_package = config_data["world_package"]
             self.map_name = config_data["map_name"]
             self.map_package = config_data["map_package"]
 
@@ -70,21 +74,28 @@ def generate_launch_description():
     pipeline_config.import_config()
 
     # Launch of Gazebo with specified world
+    world_file = PathJoinSubstitution([get_package_share_directory(pipeline_config.world_package),
+                                       "worlds", 
+                                       pipeline_config.world_name])
+
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("dt_gazebo"),
+                    FindPackageShare("gpp_pipeline"),
                     "launch",
-                    "match_empty_world.launch.py"
+                    "gazebo_world.launch.py"
                 ]
             )
-        )
+        ),
+        launch_arguments={
+            "world": world_file,
+        }.items(),
     )
 
     return LaunchDescription(
         [
-            
+            gz_sim
         ]
     )
 
