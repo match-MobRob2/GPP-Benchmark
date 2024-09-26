@@ -41,7 +41,7 @@ def generate_launch_description():
         ]
     )
     gz_args = [headless_cfg, " ", world_cfg]
-
+    
     use_gpu = LaunchConfiguration("use_gpu")
     declare_use_gpu_arg = DeclareLaunchArgument(
         "use_gpu",

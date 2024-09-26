@@ -17,8 +17,6 @@ then
     source /opt/ros/humble/setup.bash
 fi
 
-echo "1"
-
 if [ -f /cirp_ws/install/setup.bash ]
 then
     source /cirp_ws/install/setup.bash
@@ -38,10 +36,18 @@ then
     echo "Start Pipeline"
     colcon build
     source install/setup.bash
-    ros2 pkg prefix mir_gazebo
+
+    export GAZEBO_MODEL_PATH=~/.gazebo/models
+    echo $GAZEBO_MODEL_PATH
+    ls -a ~
+    ls -a ~/.gazebo
+    ls -a ~/.gazebo/models
+    ls -a $GAZEBO_MODEL_PATH
+
     ros2 launch gpp_pipeline pipeline.launch.py
     # python3 $HOME/cirp_ws/src/GloPaPlan-Testing-Pipeline/pipeline/pipeline.py
     # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze
+    # ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="empty.sdf"
 elif [[ $TASK == "test" ]]
 then
     echo "test"

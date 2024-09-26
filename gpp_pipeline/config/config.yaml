@@ -1,5 +1,5 @@
-world_name: "maze.world"
-world_package: "mir_gazebo"
+world_name: "maze.sdf"
+world_package: "gpp_gazebo"
 map_name: "maze.yaml"
 map_package: "mir_gazebo"
 

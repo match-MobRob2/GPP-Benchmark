@@ -37,7 +37,8 @@ From: osrf/ros:humble-desktop
 
     # Clone MiR repo
 	bash -c "cd ${SINGULARITY_ROOTFS}/cirp_ws/src \
-		&& git clone -b ros2 https://github.com/mintar/mir_robot.git"
+		&& git clone -b ros2 https://github.com/mintar/mir_robot.git \
+		&& git clone https://github.com/Heenne/GPP-Pipeline.git"
 
 	# Clone depending repos through vcs
 	# Install all necessary packages
