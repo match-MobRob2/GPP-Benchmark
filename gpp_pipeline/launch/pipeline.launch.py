@@ -3,21 +3,24 @@ import yaml
 
 from launch import LaunchDescription
 
+from launch_ros.actions import Node, SetParameter
 from launch.actions import (
     IncludeLaunchDescription,
+    DeclareLaunchArgument,
     TimerAction
 )
 
 from launch.substitutions import (
     PathJoinSubstitution,
-    TextSubstitution
+    TextSubstitution,
+    LaunchConfiguration
 )
 from launch_ros.substitutions import FindPackageShare
 
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 
-
+from launch.conditions import IfCondition
 
 # from utils.pipeline_config import PipelineConfig
 
@@ -75,6 +78,9 @@ def generate_launch_description():
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
 
+    print(pipeline_config.world_package)
+    print(pipeline_config.world_name)
+
     # Launch of Gazebo with specified world
     world_file = PathJoinSubstitution([get_package_share_directory(pipeline_config.world_package),
                                        "worlds", 
@@ -93,6 +99,22 @@ def generate_launch_description():
         launch_arguments={
             "world": world_file,
         }.items(),
+    )
+
+    rviz_config_file = LaunchConfiguration('rviz_config_file')
+    declare_rviz_config_arg = DeclareLaunchArgument(
+        'rviz_config_file',
+        default_value=os.path.join(get_package_share_directory('mir_description'), 'rviz', 'mir_visu_full.rviz'),
+        description='Define rviz config file to be used.',
+    )
+
+    launch_rviz = Node(
+        condition=IfCondition(LaunchConfiguration('rviz_enabled')),
+        package='rviz2',
+        executable='rviz2',
+        output={'both': 'log'},
+        arguments=['-d', rviz_config_file],
+        parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
     )
 
     return LaunchDescription(
