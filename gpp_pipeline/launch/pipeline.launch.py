@@ -22,7 +22,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch.conditions import IfCondition
 
-# from utils.pipeline_config import PipelineConfig
+from nav2_common.launch import RewrittenYaml
 
 class PipelineConfig:
     world_name: str
@@ -78,9 +78,26 @@ def generate_launch_description():
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
 
-    print(pipeline_config.world_package)
-    print(pipeline_config.world_name)
+    print("1")
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    use_sim_time_arg = DeclareLaunchArgument('use_sim_time', 
+                          default_value='false', 
+                          description='Use simulation (Gazebo) clock if true')
+    map_yaml_file = LaunchConfiguration('map')
+    map_yaml_file_arg = DeclareLaunchArgument('map',
+                          default_value=os.path.join(get_package_share_directory('gpp_gazebo'), 'maps', 'advanced_maze.yaml'),
+                          description='Full path to map yaml file to load')
+    params_file = LaunchConfiguration('params_file')
+    print("2")
+    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 
+    # Create our own temporary YAML files that include substitutions
+    param_substitutions = {'use_sim_time': use_sim_time, 'yaml_filename': map_yaml_file}
+    print("3")
+    configured_params = RewrittenYaml(
+        source_file=params_file, root_key='', param_rewrites=param_substitutions, convert_types=True
+    )
+    print("4")
     # Launch of Gazebo with specified world
     world_file = PathJoinSubstitution([get_package_share_directory(pipeline_config.world_package),
                                        "worlds", 
@@ -109,17 +126,39 @@ def generate_launch_description():
     )
 
     launch_rviz = Node(
-        condition=IfCondition(LaunchConfiguration('rviz_enabled')),
         package='rviz2',
         executable='rviz2',
         output={'both': 'log'},
-        arguments=['-d', rviz_config_file],
-        parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+        # arguments=['-d', rviz_config_file],
+        # parameters=[use_sim_time],
     )
+
+    print("5")
+    params_file = DeclareLaunchArgument(
+        'params_file',
+        default_value=os.path.join(get_package_share_directory('gpp_pipeline'), 'config', 'nav_config.yaml'),
+        description='Full path to the ROS2 parameters file to use',
+    )
+    print("6")
+    map_server = Node(
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
+        output='screen',
+        parameters=[configured_params],
+        remappings=remappings,
+    )
+    print("7")
 
     return LaunchDescription(
         [
-            gz_sim
+            use_sim_time_arg,
+            map_yaml_file_arg,
+            params_file,
+            use_sim_time_arg,
+            gz_sim,
+            map_server,
+            launch_rviz
         ]
     )
 
