@@ -87,6 +87,13 @@ def generate_launch_description():
     map_yaml_file_arg = DeclareLaunchArgument('map',
                           default_value=os.path.join(get_package_share_directory('gpp_gazebo'), 'maps', 'advanced_maze.yaml'),
                           description='Full path to map yaml file to load')
+    autostart = LaunchConfiguration('autostart')
+    autostart_arg = DeclareLaunchArgument('autostart', 
+                          default_value='true', 
+                          description='Automatically startup the nav2 stack')
+
+    lifecycle_nodes = ['map_server']
+
     params_file = LaunchConfiguration('params_file')
     print("2")
     remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
@@ -150,15 +157,25 @@ def generate_launch_description():
     )
     print("7")
 
+    nav2_lifecycle_manager_node = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='lifecycle_manager_localization',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}, {'autostart': autostart}, {'node_names': lifecycle_nodes}],
+    )
+
     return LaunchDescription(
         [
             use_sim_time_arg,
             map_yaml_file_arg,
+            autostart_arg,
             params_file,
             use_sim_time_arg,
             gz_sim,
             map_server,
-            launch_rviz
+            launch_rviz,
+            nav2_lifecycle_manager_node
         ]
     )
 
