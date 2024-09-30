@@ -55,6 +55,35 @@
       </link>
     </model>
 
+    <model name="formation_testing_world">
+      <static>true</static>
+      <link name="link">
+        <pose>0.0 0.0 0 0 0 0.0</pose>
+        <visual name="visual">
+          <geometry>
+            <mesh>
+              <uri>meshes/formation_testing_world.obj</uri>
+              <scale>0.01 0.01 0.01</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0.42 0.42 0.42 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <emissive>0 0 0 0</emissive>
+          </material>
+        </visual>
+        <collision name="visual">
+          <geometry>
+            <mesh>
+              <uri>meshes/formation_testing_world.obj</uri>
+              <scale>0.01 0.01 0.01</scale>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>
       <world_frame_orientation>ENU</world_frame_orientation>
