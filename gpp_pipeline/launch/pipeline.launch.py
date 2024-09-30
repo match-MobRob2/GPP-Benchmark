@@ -3,16 +3,14 @@ import yaml
 
 from launch import LaunchDescription
 
-from launch_ros.actions import Node, SetParameter
+from launch_ros.actions import Node
 from launch.actions import (
     IncludeLaunchDescription,
-    DeclareLaunchArgument,
-    TimerAction
+    DeclareLaunchArgument
 )
 
 from launch.substitutions import (
     PathJoinSubstitution,
-    TextSubstitution,
     LaunchConfiguration
 )
 from launch_ros.substitutions import FindPackageShare
@@ -22,7 +20,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch.conditions import IfCondition
 
-from nav2_common.launch import RewrittenYaml
+
 
 class PipelineConfig:
     world_name: str
@@ -92,19 +90,7 @@ def generate_launch_description():
                           default_value='true', 
                           description='Automatically startup the nav2 stack')
 
-    lifecycle_nodes = ['map_server']
-
-    params_file = LaunchConfiguration('params_file')
-    print("2")
-    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
-
-    # Create our own temporary YAML files that include substitutions
-    param_substitutions = {'use_sim_time': use_sim_time, 'yaml_filename': map_yaml_file}
-    print("3")
-    configured_params = RewrittenYaml(
-        source_file=params_file, root_key='', param_rewrites=param_substitutions, convert_types=True
-    )
-    print("4")
+    
     # Launch of Gazebo with specified world
     world_file = PathJoinSubstitution([get_package_share_directory(pipeline_config.world_package),
                                        "worlds", 
@@ -140,42 +126,50 @@ def generate_launch_description():
         # parameters=[use_sim_time],
     )
 
-    print("5")
-    params_file = DeclareLaunchArgument(
-        'params_file',
-        default_value=os.path.join(get_package_share_directory('gpp_pipeline'), 'config', 'nav_config.yaml'),
-        description='Full path to the ROS2 parameters file to use',
+    localization = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("gpp_pipeline"),
+                    "launch",
+                    "localization.launch.py"
+                ]
+            )
+        )
     )
-    print("6")
-    map_server = Node(
-        package='nav2_map_server',
-        executable='map_server',
-        name='map_server',
-        output='screen',
-        parameters=[configured_params],
-        remappings=remappings,
-    )
-    print("7")
 
-    nav2_lifecycle_manager_node = Node(
-        package='nav2_lifecycle_manager',
-        executable='lifecycle_manager',
-        name='lifecycle_manager_localization',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}, {'autostart': autostart}, {'node_names': lifecycle_nodes}],
+    navigation = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("gpp_pipeline"),
+                    "launch",
+                    "navigation.launch.py"
+                ]
+            )
+        )
     )
+
+    static_tf = Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            output="screen" ,
+            arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
+        )
+    
+    
 
     return LaunchDescription(
         [
             use_sim_time_arg,
             map_yaml_file_arg,
             autostart_arg,
-            params_file,
             use_sim_time_arg,
             gz_sim,
-            map_server,
             launch_rviz,
-            nav2_lifecycle_manager_node
+            localization,
+            navigation,
+            static_tf
         ]
     )
 

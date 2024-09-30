@@ -41,6 +41,10 @@ then
     # python3 $HOME/cirp_ws/src/GloPaPlan-Testing-Pipeline/pipeline/pipeline.py
     # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze
     # ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="empty.sdf"
+
+    # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze &
+    # ros2 launch mir_navigation amcl.py use_sim_time:=true map:=$(ros2 pkg prefix mir_gazebo)/share/mir_gazebo/maps/maze.yaml &
+    # ros2 launch mir_navigation navigation.py use_sim_time:=true
 elif [[ $TASK == "test" ]]
 then
     echo "test"
@@ -83,9 +87,7 @@ export ROS_LOCALHOST_ONLY=0
 
 # source /$HOME/cirp_ws/install/setup.bash
 
-# ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze &
-# ros2 launch mir_navigation amcl.py use_sim_time:=true map:=$(ros2 pkg prefix mir_gazebo)/share/mir_gazebo/maps/maze.yaml &
-# ros2 launch mir_navigation navigation.py use_sim_time:=true
+
 
 wait
 exit
