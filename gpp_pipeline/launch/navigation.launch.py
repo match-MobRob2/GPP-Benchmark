@@ -65,13 +65,27 @@ def generate_launch_description():
         source_file=params_file, root_key='', param_rewrites=param_substitutions, convert_types=True
     )
 
+    print("------------------------------------------------------------------------------------------")
+    print("Navigation:")
+    print(use_sim_time_arg.default_value[0].describe())
+    print("------------------------------------------------------------------------------------------")
+    print("------------------------------------------------------------------------------------------")
+    print("Navigation params:")
+    # print(os.path.join(get_package_share_directory('gpp_pipeline'), 'config', 'navigation_config.yaml'))
+    print(params_file_arg.default_value[0].describe())
+    # print(default_nav_to_pose_bt_xml.default_value[0].describe())
+    print("------------------------------------------------------------------------------------------")
+    
+
     # Global Path Planner & Costmap
     planner_server_node = Node(
         package='nav2_planner',
         executable='planner_server',
         name='planner_server',
         output='screen',
-        parameters=[configured_params],
+        #parameters=[{'use_sim_time': False}], # configured_params
+        # parameters=[params_file],
+        parameters=[params_file_arg.default_value[0].describe()],
         remappings=remappings,
     )
 

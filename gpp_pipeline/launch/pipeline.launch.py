@@ -76,7 +76,6 @@ def generate_launch_description():
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
 
-    print("1")
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_sim_time_arg = DeclareLaunchArgument('use_sim_time', 
                           default_value='false', 
@@ -123,9 +122,11 @@ def generate_launch_description():
         executable='rviz2',
         output={'both': 'log'},
         # arguments=['-d', rviz_config_file],
-        # parameters=[use_sim_time],
+        parameters=[use_sim_time],
     )
-
+    print("------------------------------------------------------------------------------------------")
+    print(use_sim_time_arg.default_value[0].describe())
+    print("------------------------------------------------------------------------------------------")
     localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -135,7 +136,10 @@ def generate_launch_description():
                     "localization.launch.py"
                 ]
             )
-        )
+        ),
+        launch_arguments={
+            "use_sim_time": use_sim_time
+        }.items()
     )
 
     navigation = IncludeLaunchDescription(
@@ -147,7 +151,10 @@ def generate_launch_description():
                     "navigation.launch.py"
                 ]
             )
-        )
+        ),
+        launch_arguments={
+            "use_sim_time": use_sim_time
+        }.items()
     )
 
     static_tf = Node(
