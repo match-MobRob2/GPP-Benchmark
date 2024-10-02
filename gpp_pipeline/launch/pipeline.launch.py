@@ -113,7 +113,7 @@ def generate_launch_description():
     rviz_config_file = LaunchConfiguration('rviz_config_file')
     declare_rviz_config_arg = DeclareLaunchArgument(
         'rviz_config_file',
-        default_value=os.path.join(get_package_share_directory('mir_description'), 'rviz', 'mir_visu_full.rviz'),
+        default_value=os.path.join(get_package_share_directory('gpp_pipeline'), 'rviz', 'standard_config.rviz'),
         description='Define rviz config file to be used.',
     )
 
@@ -121,7 +121,7 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         output={'both': 'log'},
-        # arguments=['-d', rviz_config_file],
+        arguments=['-d', rviz_config_file],
         parameters=[use_sim_time],
     )
     print("------------------------------------------------------------------------------------------")
@@ -163,8 +163,6 @@ def generate_launch_description():
             output="screen" ,
             arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
         )
-    
-    
 
     return LaunchDescription(
         [
@@ -172,6 +170,7 @@ def generate_launch_description():
             map_yaml_file_arg,
             autostart_arg,
             use_sim_time_arg,
+            declare_rviz_config_arg,
             gz_sim,
             launch_rviz,
             localization,
