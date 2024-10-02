@@ -84,8 +84,8 @@ def generate_launch_description():
         name='planner_server',
         output='screen',
         #parameters=[{'use_sim_time': False}], # configured_params
-        # parameters=[params_file],
-        parameters=[params_file_arg.default_value[0].describe()],
+        parameters=[params_file],
+        arguments=['--ros-args', '--log-level', 'debug'],
         remappings=remappings,
     )
 
