@@ -77,16 +77,16 @@ def generate_launch_description():
     pipeline_config.import_config()
 
     use_sim_time = LaunchConfiguration('use_sim_time')
-    use_sim_time_arg = DeclareLaunchArgument('use_sim_time', 
-                          default_value='false', 
+    use_sim_time_arg = DeclareLaunchArgument('use_sim_time',
+                          default_value='false',
                           description='Use simulation (Gazebo) clock if true')
     map_yaml_file = LaunchConfiguration('map')
     map_yaml_file_arg = DeclareLaunchArgument('map',
                           default_value=os.path.join(get_package_share_directory('gpp_gazebo'), 'maps', 'advanced_maze.yaml'),
                           description='Full path to map yaml file to load')
     autostart = LaunchConfiguration('autostart')
-    autostart_arg = DeclareLaunchArgument('autostart', 
-                          default_value='true', 
+    autostart_arg = DeclareLaunchArgument('autostart',
+                          default_value='true',
                           description='Automatically startup the nav2 stack')
 
     
@@ -124,9 +124,7 @@ def generate_launch_description():
         arguments=['-d', rviz_config_file],
         parameters=[use_sim_time],
     )
-    print("------------------------------------------------------------------------------------------")
-    print(use_sim_time_arg.default_value[0].describe())
-    print("------------------------------------------------------------------------------------------")
+    
     localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(

@@ -2,12 +2,11 @@ import os
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.descriptions import ParameterFile
 from launch.actions import (
-    IncludeLaunchDescription,
     DeclareLaunchArgument
 )
 from launch.substitutions import (
-    PathJoinSubstitution,
     LaunchConfiguration
 )
 from ament_index_python.packages import get_package_share_directory
@@ -17,24 +16,24 @@ from nav2_common.launch import RewrittenYaml
 def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time')
-    use_sim_time_arg = DeclareLaunchArgument('use_sim_time', 
-                          default_value='false', 
+    use_sim_time_arg = DeclareLaunchArgument('use_sim_time',
+                          default_value='false',
                           description='Use simulation (Gazebo) clock if true')
     autostart = LaunchConfiguration('autostart')
-    autostart_arg = DeclareLaunchArgument('autostart', 
-                          default_value='true', 
+    autostart_arg = DeclareLaunchArgument('autostart',
+                          default_value='true',
                           description='Automatically startup the nav2 stack')
-    params_file = LaunchConfiguration('params_file')
-    params_file_arg = DeclareLaunchArgument('params_file',
-                          default_value=os.path.join(get_package_share_directory('gpp_pipeline'), 
-                                                     'config', 
+    nav_params_file = LaunchConfiguration('nav_params_file')
+    nav_params_file_arg = DeclareLaunchArgument('nav_params_file',
+                          default_value=os.path.join(get_package_share_directory('gpp_pipeline'),
+                                                     'config',
                                                      'navigation_config.yaml'),
                           description='Full path to the ROS2 parameters file to use')
     default_nav_to_pose_bt_xml = LaunchConfiguration('default_nav_to_pose_bt_xml')
     default_nav_to_pose_bt_xml_arg = DeclareLaunchArgument('default_nav_to_pose_bt_xml',
-                          default_value=os.path.join(get_package_share_directory('gpp_pipeline'), 
+                          default_value=os.path.join(get_package_share_directory('gpp_pipeline'),
                                                      'behavior_trees', 
-                                                     'navigate_to_pose_w_replanning_and_recovery.xml'),
+                                                     'navigate_to_pose.xml'),
                           description='Full path to the behavior tree xml file to use')
     map_subscribe_transient_local = LaunchConfiguration('map_subscribe_transient_local')
     map_subscribe_transient_local_arg = DeclareLaunchArgument('map_subscribe_transient_local',
@@ -62,20 +61,8 @@ def generate_launch_description():
     }
 
     configured_params = RewrittenYaml(
-        source_file=params_file, root_key='', param_rewrites=param_substitutions, convert_types=True
+        source_file=nav_params_file, root_key='', param_rewrites=param_substitutions, convert_types=True
     )
-
-    print("------------------------------------------------------------------------------------------")
-    print("Navigation:")
-    print(use_sim_time_arg.default_value[0].describe())
-    print("------------------------------------------------------------------------------------------")
-    print("------------------------------------------------------------------------------------------")
-    print("Navigation params:")
-    # print(os.path.join(get_package_share_directory('gpp_pipeline'), 'config', 'navigation_config.yaml'))
-    print(params_file_arg.default_value[0].describe())
-    # print(default_nav_to_pose_bt_xml.default_value[0].describe())
-    print("------------------------------------------------------------------------------------------")
-    
 
     # Global Path Planner & Costmap
     planner_server_node = Node(
@@ -83,9 +70,26 @@ def generate_launch_description():
         executable='planner_server',
         name='planner_server',
         output='screen',
-        #parameters=[{'use_sim_time': False}], # configured_params
-        parameters=[params_file],
-        arguments=['--ros-args', '--log-level', 'debug'],
+        parameters=[configured_params],
+        arguments=['--ros-args', '--log-level', 'info'],
+        remappings=remappings,
+    )
+
+    navigation_recovery_server = Node(
+        package='nav2_behaviors',
+        executable='behavior_server',
+        name='recoveries_server',
+        output='screen',
+        parameters=[configured_params],
+        remappings=remappings,
+    )
+
+    navigation_behaviour_tree_node = Node(
+        package='nav2_bt_navigator',
+        executable='bt_navigator',
+        name='bt_navigator',
+        output='screen',
+        parameters=[ParameterFile(configured_params, allow_substs=True), {'default_nav_to_pose_bt_xml': default_nav_to_pose_bt_xml}],
         remappings=remappings,
     )
 
@@ -94,17 +98,21 @@ def generate_launch_description():
         executable='lifecycle_manager',
         name='lifecycle_manager_navigation',
         output='screen',
-        parameters=[{'use_sim_time': use_sim_time}, {'autostart': autostart}, {'node_names': ['planner_server']}],
+        parameters=[{'use_sim_time': use_sim_time}, 
+                    {'autostart': autostart}, 
+                    {'node_names': ['planner_server', 'bt_navigator', 'recoveries_server']}],
     )
 
     return LaunchDescription(
         [
             use_sim_time_arg,
             autostart_arg,
-            params_file_arg,
+            nav_params_file_arg,
             default_nav_to_pose_bt_xml_arg,
             map_subscribe_transient_local_arg,
             planner_server_node,
+            navigation_recovery_server,
+            navigation_behaviour_tree_node,
             navigation_lifecylce_manager_node
         ]
     )

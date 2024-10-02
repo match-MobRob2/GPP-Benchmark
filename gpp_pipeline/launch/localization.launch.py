@@ -15,7 +15,6 @@ from ament_index_python.packages import get_package_share_directory
 from nav2_common.launch import RewrittenYaml
 
 def generate_launch_description():
-    print("Localization")
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_sim_time_arg = DeclareLaunchArgument('use_sim_time', 
                           default_value='false', 
@@ -33,8 +32,7 @@ def generate_launch_description():
     params_file_arg = DeclareLaunchArgument(
         'params_file',
         default_value=os.path.join(get_package_share_directory('gpp_pipeline'), 'config', 'localization_config.yaml'),
-        description='Full path to the ROS2 parameters file to use',
-    )
+        description='Full path to the ROS2 parameters file to use')
 
     lifecycle_nodes = ['map_server']
 
@@ -53,11 +51,6 @@ def generate_launch_description():
         source_file=params_file, root_key='', param_rewrites=param_substitutions, convert_types=True
     )
 
-    print("------------------------------------------------------------------------------------------")
-    print("Localization:")
-    print(use_sim_time_arg.default_value[0].describe())
-    print("------------------------------------------------------------------------------------------")
-
     map_server_node = Node(
         package='nav2_map_server',
         executable='map_server',
@@ -75,26 +68,6 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}, {'autostart': autostart}, {'node_names': lifecycle_nodes}],
     )
 
-    # laser_scan_merger_node = Node(
-    #     package='ira_laser_tools',
-    #     name='mir_laser_scan_merger',
-    #     executable='laserscan_multi_merger',
-    #     parameters=[
-    #         {
-    #             'laserscan_topics': "b_scan f_scan",
-    #             'destination_frame': "virtual_laser_link",
-    #             'scan_destination_topic': "scan",
-    #             'cloud_destination_topic': "scan_cloud",
-    #             'min_height': -0.25,
-    #             'max_completion_time': 0.05,
-    #             'max_merge_time_diff': 0.005,
-    #             'use_sim_time': use_sim_time,
-    #             'best_effort': False,
-    #         }
-    #     ],
-    #     output='screen',
-    # )
-
     return LaunchDescription(
         [
             use_sim_time_arg,
@@ -102,7 +75,6 @@ def generate_launch_description():
             autostart_arg,
             params_file_arg,
             map_server_node,
-            map_lifecycle_manager_node,
-            # laser_scan_merger_node
+            map_lifecycle_manager_node
         ]
     )
