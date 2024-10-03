@@ -162,6 +162,8 @@ def generate_launch_description():
             arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
         )
 
+    
+
     return LaunchDescription(
         [
             use_sim_time_arg,
@@ -176,12 +178,3 @@ def generate_launch_description():
             static_tf
         ]
     )
-
-# if __name__ == "__main__":
-    
-
-#     launch_file_path: str = get_share_file_path_from_package(package_name="mir_gazebo", file_name="mir_gazebo_launch.py")
-#     launch_a_launch_file(launch_file_path = launch_file_path, launch_file_arguments = "")
-
-#     launch_file_path: str = get_share_file_path_from_package(package_name="mir_navigation", file_name="amcl.py")
-#     launch_a_launch_file(launch_file_path = launch_file_path, launch_file_arguments = "")
