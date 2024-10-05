@@ -10,8 +10,11 @@ from launch.actions import (
     ExecuteProcess,
     RegisterEventHandler,
     LogInfo,
-    TimerAction 
+    TimerAction,
+    EmitEvent
 )
+
+from launch.events import Shutdown
 
 from launch.event_handlers import OnProcessStart
 
@@ -185,13 +188,16 @@ def generate_launch_description():
         name="send_new_goal_node",
         output="screen"
     )
-    # start_send_new_goal = RegisterEventHandler(
-    #     OnProcessStart(target_action=rosbag_record,
-    #                    on_start=[LogInfo(msg="rosbag record started. Sending navigation goal."),
-    #                              send_new_goal_node])
-    # )
+    start_send_new_goal = RegisterEventHandler(
+        OnProcessStart(target_action=rosbag_record,
+                       on_start=[LogInfo(msg="rosbag record started. Sending navigation goal."),
+                                 send_new_goal_node])
+    )
 
-    send_new_goal_delayed = TimerAction(period=10.0, actions=[send_new_goal_node])
+    # send_new_goal_delayed = TimerAction(period=10.0, actions=[send_new_goal_node])
+
+
+    # kill_all_delayed = TimerAction(period=10.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
 
     return LaunchDescription(
         [
@@ -208,7 +214,8 @@ def generate_launch_description():
             # send_new_goal_node,
             rosbag_record,
             # start_rosbag_record,
-            # start_send_new_goal
-            send_new_goal_delayed
+            start_send_new_goal,
+            # kill_all_delayed
+            # send_new_goal_delayed
         ]
     )

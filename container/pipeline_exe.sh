@@ -45,6 +45,10 @@ then
     # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze &
     # ros2 launch mir_navigation amcl.py use_sim_time:=true map:=$(ros2 pkg prefix mir_gazebo)/share/mir_gazebo/maps/maze.yaml &
     # ros2 launch mir_navigation navigation.py use_sim_time:=true
+    echo "THIS IS AFTER"
+    # killall -9 gzserver
+    # killall -9 gzclient
+    # ros2 launch gpp_pipeline pipeline.launch.py
 elif [[ $TASK == "test" ]]
 then
     echo "test"
