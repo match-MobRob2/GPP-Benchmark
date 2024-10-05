@@ -27,6 +27,7 @@ From: osrf/ros:humble-desktop
 	# Install specific version of python setuptools. Otherwise colcon build will fail.
 	# See ROS2-for-beginners tutorial on Udemy lesson "Create a Python Package"
 	bash -c "pip3 install setuptools==58.2.0"
+	bash -c "pip3 install rosbags"
 
 	# Install ros dependencies
 	apt-get install -y python3-colcon-common-extensions

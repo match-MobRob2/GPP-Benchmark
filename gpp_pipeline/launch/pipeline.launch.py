@@ -6,8 +6,14 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import (
     IncludeLaunchDescription,
-    DeclareLaunchArgument
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    RegisterEventHandler,
+    LogInfo,
+    TimerAction 
 )
+
+from launch.event_handlers import OnProcessStart
 
 from launch.substitutions import (
     PathJoinSubstitution,
@@ -156,13 +162,36 @@ def generate_launch_description():
     )
 
     static_tf = Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            output="screen" ,
-            arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
-        )
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        output="screen" ,
+        arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
+    )
 
-    
+    rosbag_record = ExecuteProcess(
+        cmd=['ros2', 'bag', 'record', '-a'],
+        output='screen'
+    )
+
+    # start_rosbag_record = RegisterEventHandler(
+    #     OnProcessStart(target_action=navigation,
+    #                    on_start=[LogInfo(msg="Navigation started. Starting record."),
+    #                              rosbag_record])
+    # )
+
+    send_new_goal_node = Node(
+        package="gpp_pipeline",
+        executable="send_new_goal_node",
+        name="send_new_goal_node",
+        output="screen"
+    )
+    # start_send_new_goal = RegisterEventHandler(
+    #     OnProcessStart(target_action=rosbag_record,
+    #                    on_start=[LogInfo(msg="rosbag record started. Sending navigation goal."),
+    #                              send_new_goal_node])
+    # )
+
+    send_new_goal_delayed = TimerAction(period=10.0, actions=[send_new_goal_node])
 
     return LaunchDescription(
         [
@@ -175,6 +204,11 @@ def generate_launch_description():
             launch_rviz,
             localization,
             navigation,
-            static_tf
+            static_tf,
+            # send_new_goal_node,
+            rosbag_record,
+            # start_rosbag_record,
+            # start_send_new_goal
+            send_new_goal_delayed
         ]
     )

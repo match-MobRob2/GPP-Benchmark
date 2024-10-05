@@ -26,6 +26,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "send_new_goal_node = gpp_pipeline.send_new_goal_node:main"
         ],
     },
 )
