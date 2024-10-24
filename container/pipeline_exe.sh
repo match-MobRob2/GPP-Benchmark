@@ -37,7 +37,8 @@ then
     colcon build
     source install/setup.bash
 
-    ros2 launch gpp_pipeline pipeline.launch.py
+    # ros2 launch gpp_pipeline pipeline.launch.py
+    python3 $HOME/cirp_ws/src/GPP-Pipeline/container/scripts/send_goal_position_helper.py
     # python3 $HOME/cirp_ws/src/GloPaPlan-Testing-Pipeline/pipeline/pipeline.py
     # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze
     # ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="empty.sdf"
@@ -48,6 +49,7 @@ then
     echo "THIS IS AFTER"
     # killall -9 gzserver
     # killall -9 gzclient
+    kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
     # ros2 launch gpp_pipeline pipeline.launch.py
 elif [[ $TASK == "test" ]]
 then

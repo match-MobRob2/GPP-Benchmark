@@ -194,10 +194,10 @@ def generate_launch_description():
                                  send_new_goal_node])
     )
 
-    # send_new_goal_delayed = TimerAction(period=10.0, actions=[send_new_goal_node])
+    send_new_goal_delayed = TimerAction(period=10.0, actions=[send_new_goal_node])
 
 
-    # kill_all_delayed = TimerAction(period=10.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
+    kill_all_delayed = TimerAction(period=20.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
 
     return LaunchDescription(
         [
@@ -215,7 +215,7 @@ def generate_launch_description():
             rosbag_record,
             # start_rosbag_record,
             start_send_new_goal,
-            # kill_all_delayed
-            # send_new_goal_delayed
+            # kill_all_delayed,
+            send_new_goal_delayed
         ]
     )
