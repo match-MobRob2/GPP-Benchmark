@@ -53,7 +53,14 @@ then
     # ros2 launch gpp_pipeline pipeline.launch.py
 elif [[ $TASK == "test" ]]
 then
-    echo "test"
+    cd /$HOME/cirp_ws
+    
+    echo "Start Pipeline"
+    colcon build
+    source install/setup.bash
+
+    ros2 launch gpp_pipeline pipeline.launch.py
+    kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
 fi
 
 
