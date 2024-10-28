@@ -24,7 +24,7 @@ fi
 
 if [[ $TASK == "copy" ]]
 then
-    cp -r /cirp_ws /$HOME
+    cp -r -n /cirp_ws/src /$HOME/cirp_ws # Copy but dont overwrite the GPP-Pipeline repo
 
 elif [[ $TASK == "rebuild" ]]
 then
