@@ -197,7 +197,14 @@ def generate_launch_description():
     send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])
 
 
-    kill_all_delayed = TimerAction(period=20.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
+    # kill_all_delayed = TimerAction(period=20.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
+
+    create_position_list_node = Node(
+        package="gpp_pipeline",
+        executable="create_position_list_node",
+        name="create_position_list_node",
+        output="screen"
+    )
 
     return LaunchDescription(
         [
@@ -215,7 +222,8 @@ def generate_launch_description():
             rosbag_record,
             # start_rosbag_record,
             # start_send_new_goal,
-            kill_all_delayed,
-            send_new_goal_delayed
+            # kill_all_delayed,
+            send_new_goal_delayed,
+            create_position_list_node
         ]
     )

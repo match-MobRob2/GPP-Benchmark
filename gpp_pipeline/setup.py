@@ -26,7 +26,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "send_new_goal_node = gpp_pipeline.send_new_goal_node:main"
+            "send_new_goal_node = gpp_pipeline.send_new_goal_node:main",
+            "create_position_list_node = gpp_pipeline.create_position_list_node:main"
         ],
     },
 )
