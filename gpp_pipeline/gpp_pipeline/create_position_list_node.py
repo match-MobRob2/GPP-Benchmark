@@ -29,14 +29,10 @@ class CreatePositionListNode(Node):
 
         # Get directory the script is in
         file_dir: str = os.path.dirname(os.path.realpath(__file__))
-        self.get_logger().info(file_dir)
-
         # Get file path but with /../ in the middle
         file_name: str = os.path.join(file_dir, '../../../../share/gpp_pipeline/config/config.yaml')
-        self.get_logger().info(file_name)
         # Get absolut path without /../ in the middle
         config_path:str = os.path.abspath(os.path.realpath(file_name))
-        self.get_logger().info(config_path)
 
         with open(config_path, 'r', encoding="utf-8") as file:
             config_data = yaml.safe_load(file)
@@ -63,22 +59,16 @@ class CreatePositionListNode(Node):
         costmap_new_y: int = None
 
         while not is_valid:
-            self.get_logger().info("while")
             costmap_new_x = random.randint(0, self._costmap.info.width - 1)
             costmap_new_y = random.randint(0, self._costmap.info.height - 1)
             cell_index = costmap_new_y * self._costmap.info.width + costmap_new_x
             if self._costmap.data[cell_index] == 0 and \
                 self._map != -1 and self._map != 100:
                 is_valid = True
-            else:
-                self.get_logger().info("Position invalid")
 
         map_new_x: float = costmap_new_x * self._costmap.info.resolution + self._costmap.info.origin.position.x
         map_new_y: float = costmap_new_y * self._costmap.info.resolution + self._costmap.info.origin.position.y
         map_new_phi: float = round(random.uniform(-pi, pi), 3)
-
-        self.get_logger().info("x: " + str(map_new_x))
-        self.get_logger().info("y: " + str(map_new_y))
 
         new_position: Dict[str, float] = dict()
         new_position["x"] = map_new_x
@@ -87,12 +77,17 @@ class CreatePositionListNode(Node):
         
         return new_position
 
-    def generate_random_position_list(self) -> Dict[str, Dict[str, float]]:
-        new_position_list: Dict[str, Dict[str, float]] = dict()
+    def generate_random_position_list(self) -> Dict[str, Dict[str, Dict[str, float]]]:
+        new_position_list: Dict[str, Dict[str, Dict[str, float]]] = dict()
         for counter in range(0,self._number_of_tests):
-            new_position: Dict[str, float] = self.generate_random_position()
-            new_position_list["position_" + str(counter)] = new_position
-            self.get_logger().info(str(counter))
+            start_position: Dict[str, float] = self.generate_random_position()
+            target_position: Dict[str, float] = self.generate_random_position()
+
+            navigation_task: Dict[str, Dict[str, float]] = dict()
+            navigation_task["start_position"] = start_position
+            navigation_task["target_position"] = target_position
+
+            new_position_list["position_" + str(counter)] = navigation_task
 
         return new_position_list
 
@@ -100,34 +95,61 @@ class CreatePositionListNode(Node):
         while self._costmap is None and self._map is None:
             rclpy.spin_once(self)
 
-        position_list: Dict[str, Dict[str, float]] = self.generate_random_position_list()
+        position_list: Dict[str, Dict[str, Dict[str, float]]] = self.generate_random_position_list()
 
         marker_array: MarkerArray = MarkerArray()
         counter: int = 0
         for key, value in position_list.items():
-            new_marker: Marker = Marker()
-            new_marker.header.frame_id = "map"
-            new_marker.header.stamp = rclpy.time.Time().to_msg()
-            new_marker.id = counter
-            new_marker.type = Marker.SPHERE
-            new_marker.action = Marker.ADD
-            new_marker.pose.position.x = value["x"]
-            new_marker.pose.position.y = value["y"]
-            new_marker.pose.position.z = 0.0
-            new_marker.pose.orientation.x = 0.0
-            new_marker.pose.orientation.y = 0.0
-            new_marker.pose.orientation.z = 0.0
-            new_marker.pose.orientation.w = 1.0
-            new_marker.scale.x = 0.3
-            new_marker.scale.y = 0.3
-            new_marker.scale.z = 0.3
-            new_marker.color.a = 1.0
-            new_marker.color.r = 1.0
-            marker_array.markers.append(new_marker)
+            # Add start_position to the marker array
+            start_marker: Marker = Marker()
+            start_marker.header.frame_id = "map"
+            start_marker.header.stamp = rclpy.time.Time().to_msg()
+            start_marker.id = counter
+            start_marker.type = Marker.SPHERE
+            start_marker.action = Marker.ADD
+            start_marker.pose.position.x = value["start_position"]["x"]
+            start_marker.pose.position.y = value["start_position"]["y"]
+            start_marker.pose.position.z = 0.0
+            start_marker.pose.orientation.x = 0.0
+            start_marker.pose.orientation.y = 0.0
+            start_marker.pose.orientation.z = 0.0
+            start_marker.pose.orientation.w = 1.0
+            start_marker.scale.x = 0.3
+            start_marker.scale.y = 0.3
+            start_marker.scale.z = 0.3
+            start_marker.color.a = 1.0
+            start_marker.color.r = 1.0
+            marker_array.markers.append(start_marker)
+            counter = counter + 1
+
+            # Add target_position to the marker array
+            target_marker: Marker = Marker()
+            target_marker.header.frame_id = "map"
+            target_marker.header.stamp = rclpy.time.Time().to_msg()
+            target_marker.id = counter
+            target_marker.type = Marker.SPHERE
+            target_marker.action = Marker.ADD
+            target_marker.pose.position.x = value["target_position"]["x"]
+            target_marker.pose.position.y = value["target_position"]["y"]
+            target_marker.pose.position.z = 0.0
+            target_marker.pose.orientation.x = 0.0
+            target_marker.pose.orientation.y = 0.0
+            target_marker.pose.orientation.z = 0.0
+            target_marker.pose.orientation.w = 1.0
+            target_marker.scale.x = 0.3
+            target_marker.scale.y = 0.3
+            target_marker.scale.z = 0.3
+            target_marker.color.a = 1.0
+            target_marker.color.g = 1.0
+            marker_array.markers.append(target_marker)
             counter = counter + 1
 
         self._marker_array_publisher.publish(marker_array)
 
+        
+        file_path: str = os.path.join(os.path.expanduser("~"), "Desktop/position.yaml")
+        with open(file_path, 'w', encoding="utf-8") as outfile:
+            yaml.dump(position_list, outfile, default_flow_style=False, sort_keys=False)
 
 def main(args = None):
     # Initialize ROS2 node and ROS2 communication (e.g. topics)
