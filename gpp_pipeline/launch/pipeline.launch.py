@@ -224,6 +224,6 @@ def generate_launch_description():
             # start_send_new_goal,
             # kill_all_delayed,
             send_new_goal_delayed,
-            create_position_list_node
+            # create_position_list_node
         ]
     )
