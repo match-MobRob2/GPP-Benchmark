@@ -158,61 +158,6 @@ def generate_launch_description():
         arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
     )
 
-    ### Data Recording
-    # Check if folder is existing
-    # counter: int = 0
-    # is_folder_existing: bool = True
-    # folder_path:str = None
-    # while is_folder_existing:
-    #     folder_path = os.path.join(pipeline_config.dataset_folder_path + str(counter))
-    #     print(folder_path)
-    #     is_folder_existing = os.path.isdir(folder_path)
-    #     counter = counter + 1
-
-    # if not os.path.isdir(folder_path):
-    #     os.makedirs(folder_path)
-    
-    # index_of_rosbag: int = len(next(os.walk(folder_path))[1])
-    # rosbag_path:str = os.path.join(folder_path, pipeline_config.rosbag_naming_convention + str(index_of_rosbag))
-
-    # Old version which doesnt accept param from outside
-    # rosbag_record = ExecuteProcess(
-    #     cmd=['ros2', 'bag', 'record', '-a', '-o', rosbag_path],
-    #     output='screen'
-    # )
-
-    rosbag_record = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("gpp_pipeline"),
-                    "launch",
-                    "rosbag_record.launch.py"
-                ]
-            )
-        ),
-        launch_arguments={
-            "rosbag_path": rosbag_path
-        }.items()
-    )
-
-    send_new_goal_node = Node(
-        package="gpp_pipeline",
-        executable="send_new_goal_node",
-        name="send_new_goal_node",
-        output="screen"
-    )
-    # start_send_new_goal = RegisterEventHandler(
-    #     OnProcessStart(target_action=rosbag_record,
-    #                    on_start=[LogInfo(msg="rosbag record started. Sending navigation goal."),
-    #                              send_new_goal_node])
-    # )
-
-    send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])
-
-
-    kill_all_delayed = TimerAction(period=20.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
-
     create_position_list_node = Node(
         package="gpp_pipeline",
         executable="create_position_list_node",
@@ -233,11 +178,6 @@ def generate_launch_description():
             localization,
             navigation,
             static_tf,
-            # send_new_goal_node,
-            rosbag_record,
-            # start_send_new_goal,
-            kill_all_delayed,
-            send_new_goal_delayed,
-            # create_position_list_node
+            create_position_list_node
         ]
     )

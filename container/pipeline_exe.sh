@@ -38,7 +38,7 @@ then
     source install/setup.bash
 
     # ros2 launch gpp_pipeline pipeline.launch.py
-    python3 $HOME/cirp_ws/src/GPP-Pipeline/container/scripts/send_goal_position_helper.py
+    python3 $HOME/cirp_ws/src/GPP-Pipeline/container/start_pipeline.py
     # python3 $HOME/cirp_ws/src/GloPaPlan-Testing-Pipeline/pipeline/pipeline.py
     # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze
     # ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="empty.sdf"
@@ -51,6 +51,16 @@ then
     # killall -9 gzclient
     kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
     # ros2 launch gpp_pipeline pipeline.launch.py
+elif [[ $TASK == "positions" ]]
+then
+    cd /$HOME/cirp_ws
+    
+    echo "Create positions"
+    colcon build
+    source install/setup.bash
+
+    ros2 launch gpp_pipeline create_positions.launch.py
+    kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
 elif [[ $TASK == "test" ]]
 then
     cd /$HOME/cirp_ws

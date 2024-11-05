@@ -14,6 +14,10 @@ from launch.substitutions import (
 def launch_setup(context):
     rosbag_path: str = LaunchConfiguration('rosbag_path').perform(context)
 
+    print("___________________________________________________________")
+    print(rosbag_path)
+    print("___________________________________________________________")
+
     rosbag_record = ExecuteProcess(
         cmd=['ros2', 'bag', 'record', '-a', '-o', rosbag_path],
         output='screen'
