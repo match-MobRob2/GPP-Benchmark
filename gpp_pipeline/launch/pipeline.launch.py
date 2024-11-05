@@ -29,27 +29,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch.conditions import IfCondition
 
-
-
 class PipelineConfig:
-    world_name: str
-    world_package: str
-    map_name: str
-    map_package: str
-
-    robot_launch_file: str
-    robot_launch_package: str
-
-    number_of_tests: int
-
-    robot_spawn_position_x: float
-    robot_spawn_position_y: float
-    robot_spawn_orientation_yaw: float
-
-    robot_target_position_x: float
-    robot_target_position_y: float
-    robot_target_orientation_yaw: float
-
     def __init__(self) -> None:
         pass
     
@@ -63,23 +43,27 @@ class PipelineConfig:
 
         with open(config_path, 'r') as file:
             config_data = yaml.safe_load(file)
-            self.world_name = config_data["world_name"]
-            self.world_package = config_data["world_package"]
-            self.map_name = config_data["map_name"]
-            self.map_package = config_data["map_package"]
 
-            self.robot_launch_file = config_data["robot_launch_file"]
-            self.robot_launch_package = config_data["robot_launch_package"]
+            self.dataset_folder_path: str = config_data["dataset_folder_path"]
+            self.rosbag_naming_convention: str = config_data["rosbag_naming_convention"]
 
-            self.number_of_tests = config_data["number_of_tests"]
+            self.world_name: str = config_data["world_name"]
+            self.world_package: str = config_data["world_package"]
+            self.map_name: str = config_data["map_name"]
+            self.map_package: str = config_data["map_package"]
 
-            self.robot_spawn_position_x = config_data["robot_spawn_position_x"]
-            self.robot_spawn_position_y = config_data["robot_spawn_position_y"]
-            self.robot_spawn_orientation_yaw = config_data["robot_spawn_orientation_yaw"]
+            self.robot_launch_file: str = config_data["robot_launch_file"]
+            self.robot_launch_package: str = config_data["robot_launch_package"]
 
-            self.robot_target_position_x = config_data["robot_target_position_x"]
-            self.robot_target_position_y = config_data["robot_target_position_y"]
-            self.robot_target_orientation_yaw = config_data["robot_target_orientation_yaw"]
+            self.number_of_tests: int = config_data["number_of_tests"]
+
+            self.robot_spawn_position_x: float = config_data["robot_spawn_position_x"]
+            self.robot_spawn_position_y: float = config_data["robot_spawn_position_y"]
+            self.robot_spawn_orientation_yaw: float = config_data["robot_spawn_orientation_yaw"]
+
+            self.robot_target_position_x: float = config_data["robot_target_position_x"]
+            self.robot_target_position_y: float = config_data["robot_target_position_y"]
+            self.robot_target_orientation_yaw: float = config_data["robot_target_orientation_yaw"]
 
 def generate_launch_description():
     pipeline_config: PipelineConfig = PipelineConfig()
@@ -171,16 +155,27 @@ def generate_launch_description():
         arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
     )
 
+    ### Data Recording
+    # Check if folder is existing
+    counter: int = 0
+    is_folder_existing: bool = True
+    folder_path:str = None
+    while is_folder_existing:
+        folder_path = os.path.join(pipeline_config.dataset_folder_path + str(counter))
+        print(folder_path)
+        is_folder_existing = os.path.isdir(folder_path)
+        counter = counter + 1
+
+    if not os.path.isdir(folder_path):
+        os.makedirs(folder_path)
+    
+    index_of_rosbag: int = len(next(os.walk(folder_path))[1])
+    rosbag_path:str = os.path.join(folder_path, pipeline_config.rosbag_naming_convention + str(index_of_rosbag))
+
     rosbag_record = ExecuteProcess(
-        cmd=['ros2', 'bag', 'record', '-a'],
+        cmd=['ros2', 'bag', 'record', '-a', '-o', rosbag_path],
         output='screen'
     )
-
-    # start_rosbag_record = RegisterEventHandler(
-    #     OnProcessStart(target_action=navigation,
-    #                    on_start=[LogInfo(msg="Navigation started. Starting record."),
-    #                              rosbag_record])
-    # )
 
     send_new_goal_node = Node(
         package="gpp_pipeline",
@@ -220,7 +215,6 @@ def generate_launch_description():
             static_tf,
             # send_new_goal_node,
             rosbag_record,
-            # start_rosbag_record,
             # start_send_new_goal,
             # kill_all_delayed,
             send_new_goal_delayed,

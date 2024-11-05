@@ -1,3 +1,7 @@
+# Data Recording
+dataset_folder_path: "/home/rosjaeger/rosbag_data/testing_data"
+rosbag_naming_convention: "rosbag_"
+
 world_name: "maze.sdf"
 world_package: "gpp_gazebo"
 map_name: "maze.yaml"
