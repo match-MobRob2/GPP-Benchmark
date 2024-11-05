@@ -55,17 +55,22 @@ class PipelineConfig:
             self.robot_launch_file: str = config_data["robot_launch_file"]
             self.robot_launch_package: str = config_data["robot_launch_package"]
 
-            self.number_of_tests: int = config_data["number_of_tests"]
+            # self.number_of_tests: int = config_data["number_of_tests"]
 
-            self.robot_spawn_position_x: float = config_data["robot_spawn_position_x"]
-            self.robot_spawn_position_y: float = config_data["robot_spawn_position_y"]
-            self.robot_spawn_orientation_yaw: float = config_data["robot_spawn_orientation_yaw"]
+            # self.robot_spawn_position_x: float = config_data["robot_spawn_position_x"]
+            # self.robot_spawn_position_y: float = config_data["robot_spawn_position_y"]
+            # self.robot_spawn_orientation_yaw: float = config_data["robot_spawn_orientation_yaw"]
 
-            self.robot_target_position_x: float = config_data["robot_target_position_x"]
-            self.robot_target_position_y: float = config_data["robot_target_position_y"]
-            self.robot_target_orientation_yaw: float = config_data["robot_target_orientation_yaw"]
+            # self.robot_target_position_x: float = config_data["robot_target_position_x"]
+            # self.robot_target_position_y: float = config_data["robot_target_position_y"]
+            # self.robot_target_orientation_yaw: float = config_data["robot_target_orientation_yaw"]
 
 def generate_launch_description():
+    auto_kill = LaunchConfiguration('auto_kill')
+    auto_kill_arg = DeclareLaunchArgument('auto_kill',
+                          default_value='false',
+                          description='Automatically kill all nodes and processes after x seconds')
+
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
 
@@ -81,11 +86,30 @@ def generate_launch_description():
     autostart_arg = DeclareLaunchArgument('autostart',
                           default_value='true',
                           description='Automatically startup the nav2 stack')
+    
+    # Path where the rosbag is saved.
+    # This path is given by the config and the pipeline during execution
     rosbag_path = LaunchConfiguration('rosbag_path')
     rosbag_path_arg = DeclareLaunchArgument('rosbag_path',
                           default_value='/tmp',
                           description='Path of the recoreded rosbag')
     
+    # Startposition of the robot
+    start_robot_x = LaunchConfiguration('start_robot_x')
+    start_robot_x_arg = DeclareLaunchArgument('start_robot_x',
+                          default_value='0.0',
+                          description='x-value for the start position of the robot')
+
+    start_robot_y = LaunchConfiguration('start_robot_y')
+    start_robot_y_arg = DeclareLaunchArgument('start_robot_y',
+                          default_value='0.0',
+                          description='y-value for the start position of the robot')
+    
+    start_robot_phi = LaunchConfiguration('start_robot_phi')
+    start_robot_phi_arg = DeclareLaunchArgument('start_robot_phi',
+                          default_value='0.0',
+                          description='phi-value for the start position of the robot')
+
     # Launch of Gazebo with specified world
     world_file = PathJoinSubstitution([get_package_share_directory(pipeline_config.world_package),
                                        "worlds", 
@@ -151,11 +175,22 @@ def generate_launch_description():
         }.items()
     )
 
+    # static_tf = Node(
+    #     package="tf2_ros",
+    #     executable="static_transform_publisher",
+    #     output="screen" ,
+    #     arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
+    # )
+
     static_tf = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        output="screen" ,
-        arguments=["0", "0", "0", "0", "0", "0", "map", "base_link"]
+        package="gpp_pipeline",
+        executable="static_frame_publisher_node",
+        output="screen",
+        parameters=[
+            {"start_robot_x": 3.0},
+            {"start_robot_y": 3.0},
+            {"start_robot_phi": 0.0}
+        ]
     )
 
     ### Data Recording
@@ -211,7 +246,7 @@ def generate_launch_description():
     send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])
 
 
-    kill_all_delayed = TimerAction(period=20.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
+    # kill_all_delayed = TimerAction(period=20.0, actions=[EmitEvent(event=Shutdown(reason="PLEASE WORK!"))],)
 
     create_position_list_node = Node(
         package="gpp_pipeline",
@@ -236,8 +271,8 @@ def generate_launch_description():
             # send_new_goal_node,
             rosbag_record,
             # start_send_new_goal,
-            kill_all_delayed,
-            send_new_goal_delayed,
+            # kill_all_delayed,
+            # send_new_goal_delayed,
             # create_position_list_node
         ]
     )

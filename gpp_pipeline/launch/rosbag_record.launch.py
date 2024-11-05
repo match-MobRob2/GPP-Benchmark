@@ -11,7 +11,7 @@ from launch.substitutions import (
 )
 
 # This is needed to get the runtime value of the rosbag path for the ExecuteProcess
-def launch_setup(context):
+def launch_rosbag_record(context):
     rosbag_path: str = LaunchConfiguration('rosbag_path').perform(context)
 
     print("___________________________________________________________")
@@ -30,7 +30,7 @@ def generate_launch_description():
                           default_value='/tmp',
                           description='Absolut path where the rosbag is saved')
     
-    opfunc = OpaqueFunction(function = launch_setup)
+    opfunc = OpaqueFunction(function = launch_rosbag_record)
 
     return LaunchDescription(
         [
