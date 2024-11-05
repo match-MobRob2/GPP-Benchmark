@@ -172,9 +172,25 @@ def generate_launch_description():
     index_of_rosbag: int = len(next(os.walk(folder_path))[1])
     rosbag_path:str = os.path.join(folder_path, pipeline_config.rosbag_naming_convention + str(index_of_rosbag))
 
-    rosbag_record = ExecuteProcess(
-        cmd=['ros2', 'bag', 'record', '-a', '-o', rosbag_path],
-        output='screen'
+    # Old version which doesnt accept param from outside
+    # rosbag_record = ExecuteProcess(
+    #     cmd=['ros2', 'bag', 'record', '-a', '-o', rosbag_path],
+    #     output='screen'
+    # )
+
+    rosbag_record = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("gpp_pipeline"),
+                    "launch",
+                    "rosbag_record.launch.py"
+                ]
+            )
+        ),
+        launch_arguments={
+            "rosbag_path": rosbag_path
+        }.items()
     )
 
     send_new_goal_node = Node(
@@ -183,11 +199,11 @@ def generate_launch_description():
         name="send_new_goal_node",
         output="screen"
     )
-    start_send_new_goal = RegisterEventHandler(
-        OnProcessStart(target_action=rosbag_record,
-                       on_start=[LogInfo(msg="rosbag record started. Sending navigation goal."),
-                                 send_new_goal_node])
-    )
+    # start_send_new_goal = RegisterEventHandler(
+    #     OnProcessStart(target_action=rosbag_record,
+    #                    on_start=[LogInfo(msg="rosbag record started. Sending navigation goal."),
+    #                              send_new_goal_node])
+    # )
 
     send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])
 
