@@ -6,6 +6,7 @@ from time import sleep
 from typing import Dict
 
 import rclpy
+import rclpy.clock
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 
@@ -15,13 +16,13 @@ class SendNewGoalNode(Node):
         
         self._goal_pose_publisher = self.create_publisher(PoseStamped, '/goal_pose', 1)
 
-        self._send_goal_timer = self.create_timer(1.0, self.send_goal_cb)
+        # self._send_goal_timer = self.create_timer(1.0, self.send_goal_cb, clock=rclpy.clock.Clock())
 
 
         self.get_logger().info("subscribers: " + str(self._goal_pose_publisher.get_subscription_count()))
-        # while self._goal_pose_publisher.get_subscription_count() < 2:
-        #     # rclpy.spin_once(self)
-        #     self.get_logger().info("subscribers: " + str(self._goal_pose_publisher.get_subscription_count()))
+        while self._goal_pose_publisher.get_subscription_count() == 0:
+            # rclpy.spin_once(self)
+            self.get_logger().info("subscribers: " + str(self._goal_pose_publisher.get_subscription_count()))
 
         # self.get_logger().info("subscribers: " + str(self._goal_pose_publisher.get_subscription_count()))
         self.declare_parameter('target_robot_x', rclpy.Parameter.Type.DOUBLE)
@@ -33,7 +34,7 @@ class SendNewGoalNode(Node):
         self._target_robot_phi: float = self.get_parameter("target_robot_phi").value
 
     def send_goal_cb(self) -> None:
-        if self._goal_pose_publisher.get_subscription_count() < 2:
+        if self._goal_pose_publisher.get_subscription_count() < 1:
             self.get_logger().info("return")
             return
         
@@ -45,6 +46,8 @@ class SendNewGoalNode(Node):
 
         self._goal_pose_publisher.publish(goal_pose)
         self.get_logger().info("published")
+
+        self._send_goal_timer.cancel()
 
     def run(self) -> None:
         goal_pose: PoseStamped = PoseStamped()
@@ -85,9 +88,9 @@ def main(args = None):
     send_new_goal_node: SendNewGoalNode = SendNewGoalNode()
 
     # Publisher will only be called once. It needs time to be ready.
-    # sleep(3)
+    sleep(1)
 
-    # send_new_goal_node.run()
+    send_new_goal_node.run()
 
     # Pause the programm until its killed. All tasks still will be processed in the background.
     rclpy.spin(send_new_goal_node)
