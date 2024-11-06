@@ -80,7 +80,7 @@ fi
 # The cluster is not blocking or ROS messages from one user to the other
 # If this is not set other users can see my topics and also the simulations mess each other up (time jump detected)
 # This prevents it in a nices way than running "singularity run --net --network none match-dt-tasks.sif XX"
-export ROS_LOCALHOST_ONLY=0
+# export ROS_LOCALHOST_ONLY=0
 
 # if [ $1 == "rebuild" ] # Remove existing built components and build all packages in tasks_ws workspace
 # then

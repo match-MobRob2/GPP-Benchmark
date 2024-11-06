@@ -7,6 +7,8 @@ from nav_msgs.msg import Path
 
 from time import sleep
 
+import rclpy.time
+
 class PathListener(Node):
     def __init__(self) -> None:
         super().__init__('send_new_goal')
@@ -33,10 +35,11 @@ def main(args = None):
     # rclpy.spin(send_new_goal_node)
     
     while path_listener_node.plan is None and rclpy.ok():
-        path_listener_node.get_logger().info(str(path_listener_node.plan))
-        path_listener_node.get_logger().info(str(rclpy.ok()))
-        path_listener_node.get_logger().info("bla")
-        # rclpy.spin_once(path_listener_node)
+        # path_listener_node.get_logger().info(str(path_listener_node.plan))
+        # path_listener_node.get_logger().info(str(rclpy.ok()))
+        # path_listener_node.get_logger().info("bla")
+        rclpy.spin_once(path_listener_node)
+        
 
     path_listener_node.get_logger().info("finished")
 
