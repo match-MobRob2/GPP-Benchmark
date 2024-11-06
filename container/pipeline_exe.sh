@@ -22,6 +22,8 @@ then
     source /cirp_ws/install/setup.bash
 fi
 
+export ROS_DOMAIN_ID=9
+
 if [[ $TASK == "copy" ]]
 then
     cp -r -n /cirp_ws/src /$HOME/cirp_ws # Copy but dont overwrite the GPP-Pipeline repo
@@ -69,7 +71,7 @@ then
     colcon build
     source install/setup.bash
 
-    ros2 launch gpp_pipeline pipeline.launch.py
+    ros2 launch gpp_pipeline test_pipeline.launch.py
     kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
 fi
 

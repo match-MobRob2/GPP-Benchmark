@@ -12,37 +12,49 @@ from geometry_msgs.msg import PoseStamped
 class SendNewGoalNode(Node):
     def __init__(self) -> None:
         super().__init__('send_new_goal')
+        
         self._goal_pose_publisher = self.create_publisher(PoseStamped, '/goal_pose', 1)
+        self.get_logger().info("subscribers: " + str(self._goal_pose_publisher.get_subscription_count()))
+        while self._goal_pose_publisher.get_subscription_count() == 0:
+            # rclpy.spin_once(self)
+            self.get_logger().info("subscribers: " + str(self._goal_pose_publisher.get_subscription_count()))
 
-    def send_goal(self):
+        self.declare_parameter('target_robot_x', rclpy.Parameter.Type.DOUBLE)
+        self.declare_parameter('target_robot_y', rclpy.Parameter.Type.DOUBLE)
+        self.declare_parameter('target_robot_phi', rclpy.Parameter.Type.DOUBLE)
+
+        self._target_robot_x: float = self.get_parameter("target_robot_x").value
+        self._target_robot_y: float = self.get_parameter("target_robot_y").value
+        self._target_robot_phi: float = self.get_parameter("target_robot_phi").value
+
+    def run(self) -> None:
         goal_pose: PoseStamped = PoseStamped()
         goal_pose.header.frame_id = "map"
-        goal_pose.pose.position.x = 5.0
-        goal_pose.pose.position.y = 5.0
+        goal_pose.pose.position.x = self._target_robot_x
+        goal_pose.pose.position.y = self._target_robot_y
         goal_pose.pose.orientation.w = 1.0
 
         self._goal_pose_publisher.publish(goal_pose)
 
-    def run(self) -> None:
-        file_path: str = os.path.join(os.path.expanduser("~"), "Desktop/position.yaml")
-        with open(file_path, 'r', encoding="utf-8") as file:
-            position_data: Dict[str, Dict[str, Dict[str, float]]] = yaml.safe_load(file)
+        # file_path: str = os.path.join(os.path.expanduser("~"), "Desktop/position.yaml")
+        # with open(file_path, 'r', encoding="utf-8") as file:
+        #     position_data: Dict[str, Dict[str, Dict[str, float]]] = yaml.safe_load(file)
 
-            for key, position_tuple in position_data.items():
-                goal_pose: PoseStamped = PoseStamped()
-                goal_pose.header.frame_id = "map"
-                goal_pose.pose.position.x = position_tuple["target_position"]["x"]
-                goal_pose.pose.position.y = position_tuple["target_position"]["y"]
-                goal_pose.pose.orientation.w = 1.0
+        #     for key, position_tuple in position_data.items():
+        #         goal_pose: PoseStamped = PoseStamped()
+        #         goal_pose.header.frame_id = "map"
+        #         goal_pose.pose.position.x = position_tuple["target_position"]["x"]
+        #         goal_pose.pose.position.y = position_tuple["target_position"]["y"]
+        #         goal_pose.pose.orientation.w = 1.0
 
-                self.get_logger().info(key)
+        #         self.get_logger().info(key)
 
-                self._goal_pose_publisher.publish(goal_pose)
-                self.get_logger().info(key)
-                # rclpy.spin_once(self)
-                self.get_logger().info(key)
-                sleep(0.2)
-                self.get_logger().info(key)
+        #         self._goal_pose_publisher.publish(goal_pose)
+        #         self.get_logger().info(key)
+        #         # rclpy.spin_once(self)
+        #         self.get_logger().info(key)
+        #         sleep(1.0)
+        #         self.get_logger().info(key)
 
             
 
@@ -53,7 +65,7 @@ def main(args = None):
     send_new_goal_node: SendNewGoalNode = SendNewGoalNode()
 
     # Publisher will only be called once. It needs time to be ready.
-    sleep(1)
+    # sleep(3)
 
     send_new_goal_node.run()
 

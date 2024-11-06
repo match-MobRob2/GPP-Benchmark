@@ -16,7 +16,7 @@ from launch.actions import (
 
 from launch.events import Shutdown
 
-from launch.event_handlers import OnProcessStart,OnProcessExit
+from launch.event_handlers import OnProcessStart
 
 from launch.substitutions import (
     PathJoinSubstitution,
@@ -236,19 +236,6 @@ def generate_launch_description():
     #                              send_new_goal_node])
     # )
 
-    path_listener_node = Node(
-        package="gpp_pipeline",
-        executable="path_listener_node",
-        name="path_listener_node",
-        output="screen"
-    )
-
-    kill_all_event = RegisterEventHandler(
-        OnProcessExit(target_action=path_listener_node,
-                       on_exit=[LogInfo(msg="Path received. Kill all nodes."),
-                                 EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
-    )
-
     return LaunchDescription(
         [
             use_sim_time_arg,
@@ -268,9 +255,9 @@ def generate_launch_description():
             localization,
             navigation,
             static_tf,
+            # send_new_goal_node,
             rosbag_record,
-            path_listener_node,
-            send_new_goal_delayed,
-            kill_all_event
+            # start_send_new_goal,
+            send_new_goal_delayed
         ]
     )
