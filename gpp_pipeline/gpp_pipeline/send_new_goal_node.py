@@ -9,15 +9,14 @@ import rclpy
 import rclpy.clock
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
+from tf_transformations import quaternion_from_euler
 
 class SendNewGoalNode(Node):
     def __init__(self) -> None:
         super().__init__('send_new_goal')
         
         self._goal_pose_publisher = self.create_publisher(PoseStamped, '/goal_pose', 1)
-
-        # self._send_goal_timer = self.create_timer(1.0, self.send_goal_cb, clock=rclpy.clock.Clock())
-
+        self._goal_pose_subscriber = self.create_subscription(PoseStamped, '/goal_pose', self.goal_pose_cb, 10)
 
         self.get_logger().info("subscribers: " + str(self._goal_pose_publisher.get_subscription_count()))
         while self._goal_pose_publisher.get_subscription_count() == 0:
@@ -40,22 +39,33 @@ class SendNewGoalNode(Node):
         
         goal_pose: PoseStamped = PoseStamped()
         goal_pose.header.frame_id = "map"
+        goal_pose.header.stamp  = rclpy.time.Time().to_msg()
         goal_pose.pose.position.x = self._target_robot_x
         goal_pose.pose.position.y = self._target_robot_y
-        goal_pose.pose.orientation.w = 1.0
+        goal_pose.pose.position.z = 0.0
+        goal_pose.pose.orientation = quaternion_from_euler(0.0, 0.0, self._target_robot_phi)
 
         self._goal_pose_publisher.publish(goal_pose)
         self.get_logger().info("published")
 
-        self._send_goal_timer.cancel()
+    def goal_pose_cb(self, goal_pose: PoseStamped) -> None:
+        self.get_logger().info("goal pose received")
+        print(goal_pose)
 
     def run(self) -> None:
         goal_pose: PoseStamped = PoseStamped()
         goal_pose.header.frame_id = "map"
+        # goal_pose.header.stamp  = rclpy.time.Time().to_msg()
+        goal_pose.header.stamp  = rclpy.clock.Clock().now().to_msg()
         goal_pose.pose.position.x = self._target_robot_x
         goal_pose.pose.position.y = self._target_robot_y
-        goal_pose.pose.orientation.w = 1.0
-
+        goal_pose.pose.position.z = 0.0
+        tf_quaternion = quaternion_from_euler(0.0, 0.0, self._target_robot_phi)
+        goal_pose.pose.orientation.x = tf_quaternion[0]
+        goal_pose.pose.orientation.y = tf_quaternion[1]
+        goal_pose.pose.orientation.z = tf_quaternion[2]
+        goal_pose.pose.orientation.w = tf_quaternion[3]
+        
         self._goal_pose_publisher.publish(goal_pose)
         self.get_logger().info("published")
 
