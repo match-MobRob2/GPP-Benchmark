@@ -35,6 +35,7 @@ From: osrf/ros:humble-desktop
 	apt-get install -y python3-rosdep
 	apt-get install -y ros-humble-xacro
 	apt-get install -y ros-humble-rqt*
+	apt-get install -y ros-humble-tf-transformations
 
     # Clone MiR repo
 	bash -c "cd ${SINGULARITY_ROOTFS}/cirp_ws/src \
