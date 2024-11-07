@@ -73,6 +73,16 @@ then
 
     ros2 launch gpp_pipeline test_pipeline.launch.py
     kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
+elif [[ $TASK == "data_analysis" ]]
+then
+    cd /$HOME/cirp_ws
+    
+    echo "Start Data Analysis"
+    # colcon build
+    source install/setup.bash
+
+    python3 $HOME/cirp_ws/src/GPP-Pipeline/data_analysis/read_rosbag_test.py
+    # kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
 fi
 
 
