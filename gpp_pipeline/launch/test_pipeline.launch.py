@@ -236,6 +236,13 @@ def generate_launch_description():
     #                              send_new_goal_node])
     # )
 
+    test_node = Node(
+        package="gpp_pipeline",
+        executable="test_node",
+        name="test_node",
+        output="screen"
+    )
+
     return LaunchDescription(
         [
             use_sim_time_arg,
@@ -258,6 +265,7 @@ def generate_launch_description():
             # send_new_goal_node,
             rosbag_record,
             # start_send_new_goal,
-            send_new_goal_delayed
+            send_new_goal_delayed,
+            test_node
         ]
     )

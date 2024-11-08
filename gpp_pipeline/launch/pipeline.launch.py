@@ -249,6 +249,13 @@ def generate_launch_description():
                                  EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
     )
 
+    test_node = Node(
+        package="gpp_pipeline",
+        executable="test_node",
+        name="test_node",
+        output="screen"
+    )
+
     return LaunchDescription(
         [
             use_sim_time_arg,
@@ -271,6 +278,7 @@ def generate_launch_description():
             rosbag_record,
             path_listener_node,
             send_new_goal_delayed,
-            kill_all_event
+            kill_all_event,
+            test_node
         ]
     )
