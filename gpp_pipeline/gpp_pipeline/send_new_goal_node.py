@@ -142,10 +142,8 @@ class SendNewGoalNode(Node):
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
 
-    def feedback_callback(self, feedback):
-        self.get_logger().info(str(feedback.feedback.current_pose))
-        self.get_logger().info("feedback")
-        # self.get_logger().info('Received feedback: {0}'.format(str(feedback.navigation_time.nanosec)))
+    # def feedback_callback(self, feedback):
+        # self.get_logger().info(str(feedback.feedback.current_pose))
 
     def get_result_callback(self, future):
         result = future.result().result
@@ -181,42 +179,19 @@ class SendNewGoalNode(Node):
         self.get_logger().info('Sending goal request...')
 
         self._send_goal_future = self._action_client.send_goal_async(
-            goal_msg,
-            feedback_callback=self.feedback_callback)
+            goal_msg)
+            # feedback_callback=self.feedback_callback)
 
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 
-
-            
-
 def main(args = None):
-    # Initialize ROS2 node and ROS2 communication (e.g. topics)
-    # rclpy.init(args = args)
-
-    # send_new_goal_node: SendNewGoalNode = SendNewGoalNode()
-
-    # Publisher will only be called once. It needs time to be ready.
-    # sleep(1)
-
     try:
         rclpy.init(args=args)
-        
         action_client = SendNewGoalNode()
-
         action_client.send_goal()
-
         rclpy.spin(action_client)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
-
-    # Pause the programm until its killed. All tasks still will be processed in the background.
-    # rclpy.spin(send_new_goal_node)
-
-    # Destroy the node explicitly, otherwise garbage collector should do it.
-    # send_new_goal_node.destroy_node()
-
-    # Stops all communication and should always be called last in a node before finishing.
-    # rclpy.shutdown()
 
 if __name__ == "__main__":
     main()

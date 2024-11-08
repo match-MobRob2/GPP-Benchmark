@@ -55,22 +55,7 @@ class PipelineConfig:
             self.robot_launch_file: str = config_data["robot_launch_file"]
             self.robot_launch_package: str = config_data["robot_launch_package"]
 
-            # self.number_of_tests: int = config_data["number_of_tests"]
-
-            # self.robot_spawn_position_x: float = config_data["robot_spawn_position_x"]
-            # self.robot_spawn_position_y: float = config_data["robot_spawn_position_y"]
-            # self.robot_spawn_orientation_yaw: float = config_data["robot_spawn_orientation_yaw"]
-
-            # self.robot_target_position_x: float = config_data["robot_target_position_x"]
-            # self.robot_target_position_y: float = config_data["robot_target_position_y"]
-            # self.robot_target_orientation_yaw: float = config_data["robot_target_orientation_yaw"]
-
 def generate_launch_description():
-    auto_kill = LaunchConfiguration('auto_kill')
-    auto_kill_arg = DeclareLaunchArgument('auto_kill',
-                          default_value='false',
-                          description='Automatically kill all nodes and processes after x seconds')
-
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
 
@@ -198,21 +183,6 @@ def generate_launch_description():
         arguments=[start_robot_x, start_robot_y, "0", "0", "0", start_robot_phi, "map", "base_link"]
     )
 
-    # rosbag_record = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         PathJoinSubstitution(
-    #             [
-    #                 FindPackageShare("gpp_pipeline"),
-    #                 "launch",
-    #                 "rosbag_record.launch.py"
-    #             ]
-    #         )
-    #     ),
-    #     launch_arguments={
-    #         "rosbag_path": rosbag_path
-    #     }.items()
-    # )
-
     rosbag_record = ExecuteProcess(
         cmd=['ros2', 'bag', 'record', '-a', '-o', rosbag_path],
         output='screen'
@@ -230,30 +200,11 @@ def generate_launch_description():
         ]
     )
     send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])
-    # start_send_new_goal = RegisterEventHandler(
-    #     OnProcessStart(target_action=rosbag_record,
-    #                    on_start=[LogInfo(msg="rosbag record started. Sending navigation goal."),
-    #                              send_new_goal_node])
-    # )
-
-    path_listener_node = Node(
-        package="gpp_pipeline",
-        executable="path_listener_node",
-        name="path_listener_node",
-        output="screen"
-    )
 
     kill_all_event = RegisterEventHandler(
-        OnProcessExit(target_action=path_listener_node,
+        OnProcessExit(target_action=send_new_goal_node,
                        on_exit=[LogInfo(msg="Path received. Kill all nodes."),
                                  EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
-    )
-
-    test_node = Node(
-        package="gpp_pipeline",
-        executable="test_node",
-        name="test_node",
-        output="screen"
     )
 
     return LaunchDescription(
@@ -276,9 +227,7 @@ def generate_launch_description():
             navigation,
             static_tf,
             rosbag_record,
-            path_listener_node,
             send_new_goal_delayed,
-            kill_all_event,
-            test_node
+            kill_all_event
         ]
     )
