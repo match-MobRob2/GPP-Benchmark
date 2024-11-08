@@ -29,7 +29,8 @@ setup(
             "send_new_goal_node = gpp_pipeline.send_new_goal_node:main",
             "create_position_list_node = gpp_pipeline.create_position_list_node:main",
             "static_frame_publisher_node = gpp_pipeline.static_frame_publisher_node:main",
-            "path_listener_node = gpp_pipeline.path_listener_node:main"
+            "path_listener_node = gpp_pipeline.path_listener_node:main",
+            "test_node = gpp_pipeline.test_node:main"
         ],
     },
 )
