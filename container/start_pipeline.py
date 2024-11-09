@@ -7,12 +7,23 @@ from typing import Dict, List
 import yaml
 
 if __name__ == "__main__":
+    # Get directory the script is in
+    file_dir: str = os.path.dirname(os.path.realpath(__file__))
+    config_path: str = os.path.join(file_dir, 'pipeline_config.yaml')
 
+    rosbag_data_folder_path: str = None
+    position_file_path: str = None
+
+    with open(config_path, 'r') as file:
+        config_data = yaml.safe_load(file)
+        position_file_path: str = config_data["position_file_path"]
+        rosbag_data_folder_path: str = config_data["rosbag_data_folder_path"]
+        
     counter: int = 0
     is_folder_existing: bool = True
     folder_path:str = None
     while is_folder_existing:
-        folder_path = os.path.join("/home/rosjaeger/rosbag_data/dataset_" + str(counter))
+        folder_path = os.path.join(rosbag_data_folder_path + "/dataset_" + str(counter))
         print(folder_path)
         is_folder_existing = os.path.isdir(folder_path)
         counter = counter + 1
@@ -25,7 +36,7 @@ if __name__ == "__main__":
 
     # Read position data from file
     position_data: Dict[str, Dict[str, Dict[str, float]]]
-    with open("/home/rosjaeger/Desktop/position.yaml", 'r', encoding="utf-8") as file:
+    with open(position_file_path, 'r', encoding="utf-8") as file:
         position_data = yaml.safe_load(file)
 
     position_list: List[Dict[str, Dict[str, float]]] = list(position_data.values())
