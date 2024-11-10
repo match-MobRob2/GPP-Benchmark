@@ -123,7 +123,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("gpp_pipeline"),
+                    FindPackageShare(pipeline_config.world_package),
                     "launch",
                     "gazebo_world.launch.py"
                 ]
