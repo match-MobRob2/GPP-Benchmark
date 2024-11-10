@@ -142,9 +142,11 @@ class SendNewGoalNode(Node):
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
 
-    # def feedback_callback(self, feedback):
-        # self.get_logger().info(str(feedback.feedback.current_pose))
-
+    def feedback_callback(self, feedback):
+        self.get_logger().info("send_goal_timeout: Canceled")
+        self._send_goal_timeout_timer.cancel()
+        self._path_planning_timeout_timer.reset()
+        
     def get_result_callback(self, future):
         result = future.result().result
         status = future.result().status
@@ -152,7 +154,6 @@ class SendNewGoalNode(Node):
             self.get_logger().info('Goal succeeded! Result: {0}'.format(str(result)))
         else:
             self.get_logger().info('Goal failed with status: {0}'.format(status))
-
 
         self.get_logger().info("shutdown now...")
         # Shutdown after receiving a result
@@ -179,11 +180,23 @@ class SendNewGoalNode(Node):
         self.get_logger().info('Sending goal request...')
 
         self._send_goal_future = self._action_client.send_goal_async(
-            goal_msg)
-            # feedback_callback=self.feedback_callback)
+            goal_msg,
+            feedback_callback=self.feedback_callback)
+
+        self._send_goal_timeout_timer = self.create_timer(5.0, self.send_goal_timeout_cb, clock=rclpy.clock.Clock())
+        self._path_planning_timeout_timer = self.create_timer(20.0, self.path_planning_timeout_cb, clock=rclpy.clock.Clock())
 
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 
+    def send_goal_timeout_cb(self) -> None:
+        # Retry sending goal as the bt_navigator has timed out
+        self.get_logger().info("Resending goal")
+        self.send_goal()
+
+    def path_planning_timeout_cb(self) -> None:
+        self.get_logger().info("Path Planning timeout detected")
+        rclpy.shutdown()
+        
 def main(args = None):
     try:
         rclpy.init(args=args)
