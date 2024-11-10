@@ -55,22 +55,10 @@ class PipelineConfig:
             self.robot_launch_file: str = config_data["robot_launch_file"]
             self.robot_launch_package: str = config_data["robot_launch_package"]
 
-            # self.number_of_tests: int = config_data["number_of_tests"]
-
-            # self.robot_spawn_position_x: float = config_data["robot_spawn_position_x"]
-            # self.robot_spawn_position_y: float = config_data["robot_spawn_position_y"]
-            # self.robot_spawn_orientation_yaw: float = config_data["robot_spawn_orientation_yaw"]
-
-            # self.robot_target_position_x: float = config_data["robot_target_position_x"]
-            # self.robot_target_position_y: float = config_data["robot_target_position_y"]
-            # self.robot_target_orientation_yaw: float = config_data["robot_target_orientation_yaw"]
+            self.resend_goal_timeout: str = config_data["resend_goal_timeout"]
+            self.path_planning_timeout: str = config_data["path_planning_timeout"]
 
 def generate_launch_description():
-    auto_kill = LaunchConfiguration('auto_kill')
-    auto_kill_arg = DeclareLaunchArgument('auto_kill',
-                          default_value='false',
-                          description='Automatically kill all nodes and processes after x seconds')
-
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
 
@@ -226,7 +214,9 @@ def generate_launch_description():
         parameters=[
             {"target_robot_x": target_robot_x},
             {"target_robot_y": target_robot_y},
-            {"target_robot_phi": target_robot_phi}
+            {"target_robot_phi": target_robot_phi},
+            {"resend_goal_timeout": pipeline_config.resend_goal_timeout},
+            {"path_planning_timeout": pipeline_config.path_planning_timeout}
         ]
     )
     send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])

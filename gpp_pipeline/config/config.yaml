@@ -12,10 +12,5 @@ robot_launch_package: "mir_gazebo"
 
 number_of_tests: 100
 
-robot_spawn_position_x: 0.0
-robot_spawn_position_y: 0.0
-robot_spawn_orientation_yaw: 0.0
-
-robot_target_position_x: 0.0
-robot_target_position_y: 0.0
-robot_target_orientation_yaw: 0.0
+resend_goal_timeout: 5.0
+path_planning_timeout: 20.0

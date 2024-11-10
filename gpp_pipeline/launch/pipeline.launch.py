@@ -55,6 +55,9 @@ class PipelineConfig:
             self.robot_launch_file: str = config_data["robot_launch_file"]
             self.robot_launch_package: str = config_data["robot_launch_package"]
 
+            self.resend_goal_timeout: str = config_data["resend_goal_timeout"]
+            self.path_planning_timeout: str = config_data["path_planning_timeout"]
+
 def generate_launch_description():
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
@@ -120,7 +123,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare("gpp_pipeline"),
+                    FindPackageShare(pipeline_config.world_package),
                     "launch",
                     "gazebo_world.launch.py"
                 ]
@@ -157,7 +160,8 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "use_sim_time": use_sim_time
+            "use_sim_time": use_sim_time,
+            "map_yaml_file": pipeline_config.map_name
         }.items()
     )
 
@@ -196,7 +200,9 @@ def generate_launch_description():
         parameters=[
             {"target_robot_x": target_robot_x},
             {"target_robot_y": target_robot_y},
-            {"target_robot_phi": target_robot_phi}
+            {"target_robot_phi": target_robot_phi},
+            {"resend_goal_timeout": pipeline_config.resend_goal_timeout},
+            {"path_planning_timeout": pipeline_config.path_planning_timeout}
         ]
     )
     send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])
