@@ -17,30 +17,30 @@ then
     source /opt/ros/humble/setup.bash
 fi
 
-if [ -f /cirp_ws/install/setup.bash ]
+if [ -f $GPPP_CATKIN_WS_PATH/install/setup.bash ]
 then
-    source /cirp_ws/install/setup.bash
+    source $GPPP_CATKIN_WS_PATH/install/setup.bash
 fi
 
 export ROS_DOMAIN_ID=9
 
 if [[ $TASK == "copy" ]]
 then
-    cp -r -n /cirp_ws/src /$HOME/cirp_ws # Copy but dont overwrite the GPP-Pipeline repo
+    cp -r -n /cirp_ws/src $GPPP_CATKIN_WS_PATH # Copy but dont overwrite the GPP-Pipeline repo
 
 elif [[ $TASK == "rebuild" ]]
 then
     echo "rebuild"
 elif [[ $TASK == "start" ]]
 then
-    cd /$HOME/cirp_ws
+    cd $GPPP_CATKIN_WS_PATH
     
     echo "Start Pipeline"
     colcon build
     source install/setup.bash
 
     # ros2 launch gpp_pipeline pipeline.launch.py
-    python3 $HOME/cirp_ws/src/GPP-Pipeline/container/start_pipeline.py
+    python3 $GPPP_CATKIN_WS_PATH/src/GPP-Pipeline/container/start_pipeline.py
     # python3 $HOME/cirp_ws/src/GloPaPlan-Testing-Pipeline/pipeline/pipeline.py
     # ros2 launch mir_gazebo mir_gazebo_launch.py world:=maze
     # ros2 launch ros_gz_sim gz_sim.launch.py gz_args:="empty.sdf"
@@ -55,7 +55,7 @@ then
     # ros2 launch gpp_pipeline pipeline.launch.py
 elif [[ $TASK == "positions" ]]
 then
-    cd /$HOME/cirp_ws
+    cd $GPPP_CATKIN_WS_PATH
     
     echo "Create positions"
     colcon build
@@ -65,7 +65,7 @@ then
     kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
 elif [[ $TASK == "test" ]]
 then
-    cd /$HOME/cirp_ws
+    cd $GPPP_CATKIN_WS_PATH
     
     echo "Start Pipeline"
     colcon build
@@ -75,13 +75,13 @@ then
     kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
 elif [[ $TASK == "data_analysis" ]]
 then
-    cd /$HOME/cirp_ws
+    cd $GPPP_CATKIN_WS_PATH
     
     echo "Start Data Analysis"
     # colcon build
     source install/setup.bash
 
-    python3 $HOME/cirp_ws/src/GPP-Pipeline/data_analysis/read_rosbag_test.py
+    python3 $GPPP_CATKIN_WS_PATH/src/GPP-Pipeline/data_analysis/read_rosbag_test.py
     # kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')
 fi
 
