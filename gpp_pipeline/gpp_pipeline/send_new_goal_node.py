@@ -1,34 +1,36 @@
 #!/usr/bin/env python3
-import os
-import yaml
-
-from time import sleep
-from typing import Dict
-
 import rclpy
-from rclpy.action import ActionClient
-import rclpy.clock
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
-from lifecycle_msgs.msg import TransitionEvent
-from tf_transformations import quaternion_from_euler
+import rclpy.clock
 from rclpy.executors import ExternalShutdownException
-from nav2_msgs.action import ComputePathToPose
+
+from rclpy.action import ActionClient
+
 from nav2_msgs.action import NavigateToPose
 from action_msgs.msg import GoalStatus
+
+from tf_transformations import quaternion_from_euler
+
+
+
 
 class SendNewGoalNode(Node):
     def __init__(self) -> None:
         super().__init__('send_new_goal')
-        self._action_client = ActionClient(self, NavigateToPose, '/navigate_to_pose')
+        self._navigate_to_pose_ac = ActionClient(self, NavigateToPose, '/navigate_to_pose')
 
         self.declare_parameter('target_robot_x', rclpy.Parameter.Type.DOUBLE)
         self.declare_parameter('target_robot_y', rclpy.Parameter.Type.DOUBLE)
         self.declare_parameter('target_robot_phi', rclpy.Parameter.Type.DOUBLE)
 
+        self.declare_parameter('resend_goal_timeout', rclpy.Parameter.Type.DOUBLE)
+        self.declare_parameter('path_planning_timeout', rclpy.Parameter.Type.DOUBLE)
+
         self._target_robot_x: float = self.get_parameter("target_robot_x").value
         self._target_robot_y: float = self.get_parameter("target_robot_y").value
         self._target_robot_phi: float = self.get_parameter("target_robot_phi").value
+        self._resend_goal_timeout: float = self.get_parameter("resend_goal_timeout").value
+        self._path_planning_timeout: float = self.get_parameter("path_planning_timeout").value
 
     def goal_response_callback(self, future):
         goal_handle = future.result()
@@ -61,7 +63,7 @@ class SendNewGoalNode(Node):
 
     def send_goal(self):
         self.get_logger().info('Waiting for action server...')
-        self._action_client.wait_for_server()
+        self._navigate_to_pose_ac.wait_for_server()
 
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose.header.frame_id = "map"
@@ -78,12 +80,16 @@ class SendNewGoalNode(Node):
 
         self.get_logger().info('Sending goal request...')
 
-        self._send_goal_future = self._action_client.send_goal_async(
+        self._send_goal_future = self._navigate_to_pose_ac.send_goal_async(
             goal_msg,
             feedback_callback=self.feedback_callback)
 
-        self._send_goal_timeout_timer = self.create_timer(5.0, self.send_goal_timeout_cb, clock=rclpy.clock.Clock())
-        self._path_planning_timeout_timer = self.create_timer(20.0, self.path_planning_timeout_cb, clock=rclpy.clock.Clock())
+        self._send_goal_timeout_timer = self.create_timer(self._resend_goal_timeout, 
+                                                          self.send_goal_timeout_cb, 
+                                                          clock=rclpy.clock.Clock())
+        self._path_planning_timeout_timer = self.create_timer(self._path_planning_timeout, 
+                                                              self.path_planning_timeout_cb, 
+                                                              clock=rclpy.clock.Clock())
 
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 
