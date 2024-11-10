@@ -26,7 +26,7 @@ export ROS_DOMAIN_ID=9
 
 if [[ $TASK == "copy" ]]
 then
-    cp -r -n /cirp_ws/src $GPPP_CATKIN_WS_PATH # Copy but dont overwrite the GPP-Pipeline repo
+    cp -r -n /cirp_ws/src $GPPP_CATKIN_WS_PATH/src # Copy but dont overwrite the GPP-Pipeline repo
 
 elif [[ $TASK == "rebuild" ]]
 then
