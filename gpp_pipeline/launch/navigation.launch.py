@@ -71,7 +71,7 @@ def generate_launch_description():
         name='planner_server',
         output='screen',
         parameters=[configured_params],
-        arguments=['--ros-args', '--log-level', 'info'],
+        arguments=['--ros-args', '--log-level', 'debug'],
         remappings=remappings,
     )
 
@@ -81,6 +81,7 @@ def generate_launch_description():
         name='recoveries_server',
         output='screen',
         parameters=[configured_params],
+        arguments=['--ros-args', '--log-level', 'debug'],
         remappings=remappings,
     )
 
@@ -90,6 +91,7 @@ def generate_launch_description():
         name='bt_navigator',
         output='screen',
         parameters=[ParameterFile(configured_params, allow_substs=True), {'default_nav_to_pose_bt_xml': default_nav_to_pose_bt_xml}],
+        arguments=['--ros-args', '--log-level', 'debug'],
         remappings=remappings,
     )
 
@@ -98,6 +100,7 @@ def generate_launch_description():
         executable='lifecycle_manager',
         name='lifecycle_manager_navigation',
         output='screen',
+        arguments=['--ros-args', '--log-level', 'debug'],
         parameters=[{'use_sim_time': use_sim_time}, 
                     {'autostart': autostart}, 
                     {'node_names': ['planner_server', 'bt_navigator', 'recoveries_server']}],
