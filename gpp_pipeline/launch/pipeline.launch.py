@@ -164,6 +164,8 @@ def generate_launch_description():
             "map_yaml_file": pipeline_config.map_name
         }.items()
     )
+    localization_delayed = TimerAction(period=5.0, actions=[localization])
+
 
     navigation = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -179,6 +181,8 @@ def generate_launch_description():
             "use_sim_time": use_sim_time
         }.items()
     )
+    navigation_delayed = TimerAction(period=10.0, actions=[navigation])
+
 
     static_tf = Node(
         package="tf2_ros",
@@ -186,6 +190,8 @@ def generate_launch_description():
         output="screen" ,
         arguments=[start_robot_x, start_robot_y, "0", "0", "0", start_robot_phi, "map", "base_link"]
     )
+    static_tf_delayed = TimerAction(period=15.0, actions=[static_tf])
+
 
     rosbag_record = ExecuteProcess(
         cmd=['ros2', 'bag', 'record', '-a', '-o', rosbag_path],
@@ -205,7 +211,7 @@ def generate_launch_description():
             {"path_planning_timeout": pipeline_config.path_planning_timeout}
         ]
     )
-    send_new_goal_delayed = TimerAction(period=10.0, actions=[send_new_goal_node])
+    send_new_goal_delayed = TimerAction(period=20.0, actions=[send_new_goal_node])
 
     kill_all_event = RegisterEventHandler(
         OnProcessExit(target_action=send_new_goal_node,
@@ -236,9 +242,12 @@ def generate_launch_description():
             declare_rviz_config_arg,
             gz_sim,
             launch_rviz,
-            localization,
-            navigation,
-            static_tf,
+            # localization,
+            localization_delayed,
+            # navigation,
+            navigation_delayed,
+            # static_tf,
+            static_tf_delayed,
             rosbag_record,
             send_new_goal_delayed,
             kill_all_event,
