@@ -205,13 +205,20 @@ def generate_launch_description():
             {"path_planning_timeout": pipeline_config.path_planning_timeout}
         ]
     )
-    send_new_goal_delayed = TimerAction(period=5.0, actions=[send_new_goal_node])
+    send_new_goal_delayed = TimerAction(period=10.0, actions=[send_new_goal_node])
 
     kill_all_event = RegisterEventHandler(
         OnProcessExit(target_action=send_new_goal_node,
                        on_exit=[LogInfo(msg="Path received. Kill all nodes."),
                                  EmitEvent(event=Shutdown(reason="PLEASE WORK!"))])
     )
+
+    test_node = Node(
+        package="gpp_pipeline",
+        executable="test_node",
+        name="test_node",
+        output="screen"
+    )   
 
     return LaunchDescription(
         [
@@ -234,6 +241,7 @@ def generate_launch_description():
             static_tf,
             rosbag_record,
             send_new_goal_delayed,
-            kill_all_event
+            kill_all_event,
+            test_node
         ]
     )

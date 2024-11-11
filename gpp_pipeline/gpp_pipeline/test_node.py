@@ -6,6 +6,7 @@ from rclpy.node import Node
 import rclpy.time
 
 from lifecycle_msgs.msg import TransitionEvent
+from nav2_msgs.msg import BehaviorTreeLog
 
 class TestNode(Node):
     def __init__(self) -> None:
@@ -13,6 +14,10 @@ class TestNode(Node):
 
         self._planner_transition_subscriber = self.create_subscription(TransitionEvent, '/planner_server/transition_event', self.planner_transition_cb, 10)
         self._bt_transition_subscriber = self.create_subscription(TransitionEvent, '/bt_navigator/transition_event', self.bt_transition_cb, 10)
+
+        self._bt_tree_log_subscriber = self.create_subscription(BehaviorTreeLog, '/behavior_tree_log', self.bt_tree_log_cb, 10)
+
+        # self._bond_subscriber = self.create_subscription(Status, '/bond', self.bond_cb, 10)
 
         # self.get_logger().info(str(rclpy.time.Time().nanoseconds))
         # self._test_timer = self.create_timer(1.0, self.test_timer_cb, clock=rclpy.clock.Clock())
@@ -36,6 +41,12 @@ class TestNode(Node):
         self.get_logger().info("bt")
         self.get_logger().info("goal_state:" + str(msg.goal_state))
         self.get_logger().info("transition:" + str(msg.transition))
+        self.get_logger().info("---------------------------------------------")
+
+    def bt_tree_log_cb(self, msg: BehaviorTreeLog) -> None:
+        self.get_logger().info("---------------------------------------------")
+        self.get_logger().info("Behavior Tree Log")
+        self.get_logger().info("event_log:" + str(msg.event_log))
         self.get_logger().info("---------------------------------------------")
 
 def main(args = None):
