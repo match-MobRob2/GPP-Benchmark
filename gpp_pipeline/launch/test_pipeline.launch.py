@@ -228,10 +228,12 @@ def generate_launch_description():
 
     test_node = Node(
         package="gpp_pipeline",
-        executable="test_node",
-        name="test_node",
+        executable="visualize_position_list_node",
+        name="visualize_position_list_node",
         output="screen"
-    )
+    )   
+    test_delayed = TimerAction(period=5.0, actions=[test_node])
+
 
     return LaunchDescription(
         [
@@ -256,6 +258,6 @@ def generate_launch_description():
             rosbag_record,
             # start_send_new_goal,
             send_new_goal_delayed,
-            test_node
+            test_delayed
         ]
     )
