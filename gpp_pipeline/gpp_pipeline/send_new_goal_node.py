@@ -83,6 +83,7 @@ class SendNewGoalNode(Node):
         self._send_goal_future = self._navigate_to_pose_ac.send_goal_async(
             goal_msg,
             feedback_callback=self.feedback_callback)
+        self._send_goal_future.add_done_callback(self.goal_response_callback)
 
         self._send_goal_timeout_timer = self.create_timer(self._resend_goal_timeout, 
                                                           self.send_goal_timeout_cb, 
@@ -90,8 +91,6 @@ class SendNewGoalNode(Node):
         self._path_planning_timeout_timer = self.create_timer(self._path_planning_timeout, 
                                                               self.path_planning_timeout_cb, 
                                                               clock=rclpy.clock.Clock())
-
-        self._send_goal_future.add_done_callback(self.goal_response_callback)
 
     def send_goal_timeout_cb(self) -> None:
         # Retry sending goal as the bt_navigator has timed out

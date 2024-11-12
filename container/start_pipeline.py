@@ -6,6 +6,8 @@ import subprocess
 from typing import Dict, List
 import yaml
 
+from time import sleep
+
 if __name__ == "__main__":
     # Get directory the script is in
     file_dir: str = os.path.dirname(os.path.realpath(__file__))
@@ -66,3 +68,4 @@ if __name__ == "__main__":
         os.system("kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')") # Kill Gazebo Ingition explicit
         launch_process.wait(timeout=30)
         print("End run: " + str(experiment_counter))
+        sleep(3) # Sleep short period for giving every process time to stop
