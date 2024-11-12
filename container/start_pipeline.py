@@ -15,12 +15,19 @@ if __name__ == "__main__":
 
     rosbag_data_folder_path: str = None
     position_file_path: str = None
+    rejected_goal_path: str = None
 
     with open(config_path, 'r') as file:
         config_data = yaml.safe_load(file)
         position_file_path: str = config_data["position_file_path"]
         rosbag_data_folder_path: str = config_data["rosbag_data_folder_path"]
-        
+        rejected_goal_path: str = config_data["rejected_goal_path"]
+    
+    with open(rejected_goal_path, 'w') as file:
+        data = dict()
+        data["goal_rejected"] = False
+        yaml.dump(data, file)
+
     counter: int = 0
     is_folder_existing: bool = True
     folder_path:str = None
@@ -43,7 +50,8 @@ if __name__ == "__main__":
 
     position_list: List[Dict[str, Dict[str, float]]] = list(position_data.values())
 
-    for experiment_counter in range(len(position_data.items())):
+    experiment_counter: int = 0
+    while experiment_counter < len(position_data.items()):
         print("Start run: " + str(experiment_counter))
         
         current_position: Dict[str, Dict[str, float]] = position_list[experiment_counter]
@@ -68,4 +76,17 @@ if __name__ == "__main__":
         os.system("kill $(ps aux | grep 'ign gazebo gui' | awk '{print $2}')") # Kill Gazebo Ingition explicit
         launch_process.wait(timeout=30)
         print("End run: " + str(experiment_counter))
+        experiment_counter = experiment_counter + 1
+
+        with open(rejected_goal_path, 'r') as file_r:
+            data = yaml.safe_load(file_r)
+            if data["goal_rejected"] == True:
+                print("Goal was rejected. Retry the path planning attempt")
+                with open(rejected_goal_path, 'w') as file_w:
+                    data["goal_rejected"] = False
+                    yaml.dump(data, file_w)
+                experiment_counter = experiment_counter - 1
+                os.rmdir(rosbag_path) # Delete rosbag folder, otherwise it is not overwritten
+            else:
+                print("Goal was NOT rejected. Next path planning task.")
         sleep(3) # Sleep short period for giving every process time to stop

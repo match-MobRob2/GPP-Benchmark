@@ -251,6 +251,6 @@ def generate_launch_description():
             rosbag_record,
             send_new_goal_delayed,
             kill_all_event,
-            test_node
+            # test_node
         ]
     )

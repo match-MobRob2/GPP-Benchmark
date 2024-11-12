@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+import os
+import subprocess
+import yaml
+
 import rclpy
 from rclpy.node import Node
 import rclpy.clock
@@ -32,10 +36,29 @@ class SendNewGoalNode(Node):
         self._resend_goal_timeout: float = self.get_parameter("resend_goal_timeout").value
         self._path_planning_timeout: float = self.get_parameter("path_planning_timeout").value
 
+        # with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'r') as file:
+        #     self.data = yaml.safe_load(file)
+        #     rejected_goal: bool = self.data["goal_rejected"]
+        #     self.get_logger().info("rejected goal: " + str(rejected_goal))
+
+        # with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'w') as file:
+        #     data = yaml.safe_load(file)
+        #     data["goal_rejected"] = False
+        #     yaml.dump(self.data, file)
+
+        # with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'r') as file:
+        #     self.data = yaml.safe_load(file)
+        #     rejected_goal: bool = self.data["goal_rejected"]
+        #     self.get_logger().info("rejected goal: " + str(rejected_goal))
+
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info('Goal rejected :(')
+            with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'w') as file:
+                data = dict()
+                data["goal_rejected"] = True
+                yaml.dump(data, file)
             return
 
         self.get_logger().info('Goal accepted :)')
@@ -44,9 +67,9 @@ class SendNewGoalNode(Node):
         self._get_result_future.add_done_callback(self.get_result_callback)
 
     def feedback_callback(self, feedback):
-        self.get_logger().info("send_goal_timeout: Canceled")
+        # self.get_logger().info("send_goal_timeout: Canceled")
         self._send_goal_timeout_timer.cancel()
-        self._path_planning_timeout_timer.reset()
+        # self._path_planning_timeout_timer.reset()
         
     def get_result_callback(self, future):
         result = future.result().result
@@ -63,7 +86,7 @@ class SendNewGoalNode(Node):
 
     def send_goal(self):
         self.get_logger().info('Waiting for action server...')
-        self._navigate_to_pose_ac.wait_for_server()
+        self._navigate_to_pose_ac.wait_for_server(timeout_sec=10)
 
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose.header.frame_id = "map"
@@ -99,7 +122,9 @@ class SendNewGoalNode(Node):
 
     def path_planning_timeout_cb(self) -> None:
         self.get_logger().info("Path Planning timeout detected")
-        rclpy.shutdown()
+        # rclpy.shutdown()
+        # self.destroy_node()
+        raise ExternalShutdownException
         
 def main(args = None):
     try:
@@ -108,7 +133,8 @@ def main(args = None):
         action_client.send_goal()
         rclpy.spin(action_client)
     except (KeyboardInterrupt, ExternalShutdownException):
-        pass
+        rclpy.shutdown()
+        action_client.destroy_node()
 
 if __name__ == "__main__":
     main()
