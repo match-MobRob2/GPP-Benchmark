@@ -30,11 +30,17 @@ class SendNewGoalNode(Node):
         self.declare_parameter('resend_goal_timeout', rclpy.Parameter.Type.DOUBLE)
         self.declare_parameter('path_planning_timeout', rclpy.Parameter.Type.DOUBLE)
 
+        self.declare_parameter('rejected_goal_path', rclpy.Parameter.Type.STRING)
+        self.declare_parameter('planning_time_path', rclpy.Parameter.Type.STRING)
+
         self._target_robot_x: float = self.get_parameter("target_robot_x").value
         self._target_robot_y: float = self.get_parameter("target_robot_y").value
         self._target_robot_phi: float = self.get_parameter("target_robot_phi").value
         self._resend_goal_timeout: float = self.get_parameter("resend_goal_timeout").value
         self._path_planning_timeout: float = self.get_parameter("path_planning_timeout").value
+        
+        self._rejected_goal_path: float = self.get_parameter("rejected_goal_path").value
+        self._planning_time_path: float = self.get_parameter("planning_time_path").value
 
         # with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'r') as file:
         #     self.data = yaml.safe_load(file)
@@ -55,13 +61,15 @@ class SendNewGoalNode(Node):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info('Goal rejected :(')
-            with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'w') as file:
+            with open(self._rejected_goal_path, 'w') as file:
                 data = dict()
                 data["goal_rejected"] = True
                 yaml.dump(data, file)
             return
 
         self.get_logger().info('Goal accepted :)')
+        self._start_time = rclpy.clock.Clock().now().nanoseconds
+        print(self._start_time)
 
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
@@ -78,6 +86,23 @@ class SendNewGoalNode(Node):
             self.get_logger().info('Goal succeeded! Result: {0}'.format(str(result)))
         else:
             self.get_logger().info('Goal failed with status: {0}'.format(status))
+
+        self._end_time = rclpy.clock.Clock().now().nanoseconds
+        print(self._end_time)
+        diff = self._end_time - self._start_time
+        print("diff" + str(diff))
+
+        data = None
+        if os.path.isfile(self._planning_time_path):
+            with open(self._planning_time_path, 'r') as file_r:
+                data = yaml.safe_load(file_r)
+        else:
+            data = dict()
+
+        with open(self._planning_time_path, 'w') as file_w:
+            index = len(data.items())
+            data[str(index)] = diff
+            yaml.dump(data, file_w)
 
         self.get_logger().info("shutdown now...")
         # Shutdown after receiving a result
@@ -124,6 +149,19 @@ class SendNewGoalNode(Node):
         self.get_logger().info("Path Planning timeout detected")
         # rclpy.shutdown()
         # self.destroy_node()
+
+        data = None
+        if os.path.isfile(self._planning_time_path):
+            with open(self._planning_time_path, 'r') as file_r:
+                data = yaml.safe_load(file_r)
+        else:
+            data = dict()
+
+        with open(self._planning_time_path, 'w') as file_w:
+            index = len(data.items())
+            data[str(index)] = -1
+            yaml.dump(data, file_w)
+
         raise ExternalShutdownException
         
 def main(args = None):

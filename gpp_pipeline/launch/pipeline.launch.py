@@ -82,6 +82,15 @@ def generate_launch_description():
                           default_value='/tmp',
                           description='Path of the recoreded rosbag')
     
+    rejected_goal_path = LaunchConfiguration('rejected_goal_path')
+    rejected_goal_path_arg = DeclareLaunchArgument('rejected_goal_path',
+                          default_value='/tmp',
+                          description='Path of the recoreded rosbag')
+    planning_time_path = LaunchConfiguration('planning_time_path')
+    planning_time_path_arg = DeclareLaunchArgument('planning_time_path',
+                          default_value='/tmp',
+                          description='Path of the recoreded rosbag')
+    
     # Start position of the robot
     start_robot_x = LaunchConfiguration('start_robot_x')
     start_robot_x_arg = DeclareLaunchArgument('start_robot_x',
@@ -208,7 +217,9 @@ def generate_launch_description():
             {"target_robot_y": target_robot_y},
             {"target_robot_phi": target_robot_phi},
             {"resend_goal_timeout": pipeline_config.resend_goal_timeout},
-            {"path_planning_timeout": pipeline_config.path_planning_timeout}
+            {"path_planning_timeout": pipeline_config.path_planning_timeout},
+            {"rejected_goal_path": rejected_goal_path},
+            {"planning_time_path": planning_time_path}
         ]
     )
     send_new_goal_delayed = TimerAction(period=20.0, actions=[send_new_goal_node])
@@ -232,6 +243,8 @@ def generate_launch_description():
             map_yaml_file_arg,
             autostart_arg,
             rosbag_path_arg,
+            rejected_goal_path_arg,
+            planning_time_path_arg,
             use_sim_time_arg,
             start_robot_x_arg,
             start_robot_y_arg,

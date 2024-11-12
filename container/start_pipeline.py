@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from signal import SIGINT
 import subprocess
@@ -22,6 +23,7 @@ if __name__ == "__main__":
         position_file_path: str = config_data["position_file_path"]
         rosbag_data_folder_path: str = config_data["rosbag_data_folder_path"]
         rejected_goal_path: str = config_data["rejected_goal_path"]
+        planning_time_path: str = config_data["planning_time_path"]
     
     with open(rejected_goal_path, 'w') as file:
         data = dict()
@@ -51,6 +53,7 @@ if __name__ == "__main__":
     position_list: List[Dict[str, Dict[str, float]]] = list(position_data.values())
 
     experiment_counter: int = 0
+    number_of_iterations: int = len(position_data.items())
     while experiment_counter < len(position_data.items()):
         print("Start run: " + str(experiment_counter))
         
@@ -58,7 +61,9 @@ if __name__ == "__main__":
         start_position: Dict[str, float] = current_position["start_position"]
         target_position: Dict[str, float] = current_position["target_position"]
 
-        rosbag_path: str = folder_path + "/rosbag_" + str(experiment_counter)
+        # Format the index to be 01 for example and not 1 for sorting later
+        formated_index: str = str(experiment_counter).zfill(len(str(number_of_iterations - 1)))
+        rosbag_path: str = folder_path + "/rosbag_" + formated_index
         launch_process = subprocess.Popen(["ros2", "launch", "gpp_pipeline", "pipeline.launch.py", 
                                            "rosbag_path:=" + rosbag_path,
                                            "start_robot_x:=" + str(start_position["x"]),
@@ -66,7 +71,9 @@ if __name__ == "__main__":
                                            "start_robot_phi:=" + str(start_position["phi"]),
                                            "target_robot_x:=" + str(target_position["x"]),
                                            "target_robot_y:=" + str(target_position["y"]),
-                                           "target_robot_phi:=" + str(target_position["phi"])], text=True)
+                                           "target_robot_phi:=" + str(target_position["phi"]),
+                                           "rejected_goal_path:=" + rejected_goal_path,
+                                           "planning_time_path:=" + planning_time_path], text=True)
         
         # launch_process = subprocess.Popen(["ros2", "launch", "gpp_pipeline", "pipeline.launch.py", 
         #                                    "rosbag_path:=" + rosbag_path], text=True)
@@ -86,7 +93,7 @@ if __name__ == "__main__":
                     data["goal_rejected"] = False
                     yaml.dump(data, file_w)
                 experiment_counter = experiment_counter - 1
-                os.rmdir(rosbag_path) # Delete rosbag folder, otherwise it is not overwritten
+                shutil.rmtree(rosbag_path) # Delete rosbag folder, otherwise it is not overwritten
             else:
                 print("Goal was NOT rejected. Next path planning task.")
         sleep(3) # Sleep short period for giving every process time to stop

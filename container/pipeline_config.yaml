@@ -1,3 +1,3 @@
-position_file_path: "/home/rosjaeger/Desktop/position.yaml"
-rosbag_data_folder_path: "/home/rosjaeger/rosbag_data"
-rejected_goal_path: "/home/rosjaeger/Desktop/rejected_goal.yaml"
+position_file_path: "/home/lurz-match/Desktop/position.yaml"
+rosbag_data_folder_path: "/home/lurz-match/rosbag_data"
+rejected_goal_path: "/home/lurz-match/Desktop/rejected_goal.yaml"
