@@ -76,7 +76,7 @@ class DataEvaluator():
             rosbag_extractor_list = list()
             for rosbag_path in absolut_rosbag_path_list:
                 data_extractor: RosBagDataExtractor = RosBagDataExtractor(rosbag_path)
-                data_extractor.read_rosbag()
+                # data_extractor.read_rosbag()
                 rosbag_extractor_list.append(data_extractor)
             self._rosbag_data_extractor[key] = rosbag_extractor_list
 
@@ -98,6 +98,54 @@ class DataEvaluator():
             for rosbag_extractor in value:
                 rosbag_extractor.calc_path_length()
     
+    def calc_planning_time_mean(self) -> List[float]:
+        number_of_tests: int = len(next(iter(self._rosbag_data_extractor.values())))
+        mean_list: List[float] = [0 for i in range(number_of_tests)]
+
+        for key, value in self._rosbag_data_extractor.items():
+            for index, rosbag_extractor in enumerate(value):
+                mean_list[index] = mean_list[index] + rosbag_extractor.planning_time / float(len(self._rosbag_data_extractor))
+
+        return mean_list
+
+    def calc_planning_time_error(self) -> tuple[List[float]]:
+        number_of_tests: int = len(next(iter(self._rosbag_data_extractor.values())))
+        min_value_list: List[float] = [None for i in range(number_of_tests)]
+        max_value_list: List[float] = [None for i in range(number_of_tests)]
+
+        for key, value in self._rosbag_data_extractor.items():
+            for index, rosbag_extractor in enumerate(value):
+                if min_value_list[index] is None or \
+                    min_value_list[index] > rosbag_extractor.planning_time:
+                    min_value_list[index] = rosbag_extractor.planning_time
+                
+                if max_value_list[index] is None or \
+                    max_value_list[index] < rosbag_extractor.planning_time:
+                    max_value_list[index] = rosbag_extractor.planning_time
+
+        mean_value_list: List[float] = self.calc_planning_time_mean()
+
+        neg_error: List[float] = [mean_value - min_value for mean_value, min_value in zip(mean_value_list, min_value_list)]
+        pos_error: List[float] = [max_value -mean_value for mean_value, max_value in zip(mean_value_list, max_value_list)]
+
+        return (neg_error, pos_error)
+                
+    def calc_planning_time_max_error(self) -> List[float]:
+        number_of_tests: int = len(next(iter(self._rosbag_data_extractor.values())))
+        max_error_list: List[float] = [None for i in range(number_of_tests)]
+
+        mean_value_list: List[float] = self.calc_planning_time_mean()
+
+        for key, value in self._rosbag_data_extractor.items():
+            for index, rosbag_extractor in enumerate(value):
+                diff: float = abs(mean_value_list[index] - rosbag_extractor.planning_time)
+                if max_error_list[index] is None or \
+                    max_error_list[index] < diff:
+                    max_error_list[index] = diff
+
+        return max_error_list
+                
+
     def get_path_length(self) -> Dict[str, List[float]]:
         path_length_dict: Dict[str, List[float]] = dict()
         for key, value in self._rosbag_data_extractor.items():
@@ -146,7 +194,68 @@ class DataEvaluator():
         plt.ylabel("planning time [us]")
         plt.legend()
         plt.show()
-            
+
+    def plot_planning_time_with_diff(self) -> None:
+        mean_value_list: List[float] = self.calc_planning_time_mean()
+        error_bar: tuple[List[float]] = self.calc_planning_time_error()
+
+        index_list: List[int] = range(len(mean_value_list))
+
+        plt.figure(figsize=(8, 6))
+        plt.errorbar(index_list, mean_value_list, yerr=error_bar, fmt='o', ecolor='red', capsize=5, capthick=1, color='blue', label="Data with error bars")
+
+        plt.xlim(-3, 103)  # Set x-axis from 2 to 8
+        plt.ylim(0, 100)
+
+        # Set titles and labels
+        # plt.title(title)
+        plt.xlabel("index")
+        plt.ylabel("planning time [us]")
+        plt.legend()
+
+        # Show the plot
+        plt.show()
+
+    def plot_planning_time_and_diff(self) -> None:
+        mean_value_list: List[float] = self.calc_planning_time_mean()
+        max_error_list: List[float] = self.calc_planning_time_max_error()
+
+        mean_error: float = 0.0
+        for value in max_error_list:
+            mean_error = mean_error + value / len(max_error_list)
+
+        mean_planning_time: float = 0.0
+        for value in mean_value_list:
+            mean_planning_time = mean_planning_time + value / len(mean_value_list)
+
+        # plt.plot(mean_value_list, label=key, marker="o", linestyle="dotted")
+        group_values = ["mean planning time", "max error"]
+        index_list: List[int] = range(len(mean_value_list))
+
+        # for i, (group_name, color) in enumerate(zip(group_values, ['blue', 'red'])):
+            # Extract values for each group across all indices
+
+        figsize_inches = (83 / 25.4, 50 / 25.4)
+        plt.figure(figsize=figsize_inches)
+        plt.rcParams.update({'font.size': 10})
+
+        plt.bar(index_list, mean_value_list, width=1.0, label="Mean Planning Time", color="#018571")
+        plt.bar([i for i in index_list], max_error_list, width=1.0, label="Max Time Difference", color="#a6611a")
+        # plt.plot([mean_error for i in range(len(max_error_list))], color="#FF00FF", linestyle="dashed", label="average max error")
+        # plt.plot([mean_planning_time for i in range(len(max_error_list))], color="#30D5C8", linestyle="dashed", label="overall average planning time")
+
+
+        plt.xlim(-5, 105)  # Set x-axis from 2 to 8
+        plt.ylim(0, 110)
+
+        plt.xlabel("Index")
+        plt.ylabel("Planning time [ms]")
+        plt.legend()
+        
+        plt.savefig("/home/lurz-match/Desktop/test.png", format='png', bbox_inches='tight')
+
+        plt.show()
+ 
     def plot_compare_planning_time_specific(self) -> None:
         planning_time_list: Dict[str, List[float]] = self.get_planning_time()
 
@@ -187,11 +296,17 @@ if __name__ == "__main__":
     #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_4/dataset_18",
     #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_5/dataset_18"}
 
-    dataset_path_list: Dict[str,str] = {"Desktop - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/NavFN/dataset_170",
-                                        "Desktop - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/Smac/dataset_171",
-                                        "Desktop - ThetaStar": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/ThetaStar/dataset_169",
-                                        "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_22",
-                                        "Cluster - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/Smac/dataset_23"}
+    dataset_path_list: Dict[str,str] = {"Cluster - NavFN - c1": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_22", 
+                                        "Cluster - NavFN - c2": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_2/dataset_25",
+                                        "Cluster - NavFN - c3": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_3/dataset_26",
+                                        "Cluster - NavFN - c4": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_4/dataset_27"}
+    #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_5/dataset_18"}
+
+    # dataset_path_list: Dict[str,str] = {"Desktop - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/NavFN/dataset_170",
+    #                                     "Desktop - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/Smac/dataset_171",
+    #                                     "Desktop - ThetaStar": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/ThetaStar/dataset_169",
+    #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_22",
+    #                                     "Cluster - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/Smac/dataset_23"}
 
     # Get all rosbags in the dataset
     # rosbag_names: List[str] = [folder_name for folder_name in os.listdir(path_to_dataset) if os.path.isdir(os.path.join(path_to_dataset, folder_name))]
@@ -203,5 +318,8 @@ if __name__ == "__main__":
     data_evaluator.calc_path_length()
     data_evaluator.read_planning_time_data()
     # data_evaluator.plot_compare_path_length()
-    data_evaluator.plot_compare_planning_time_specific()
+    # data_evaluator.plot_compare_planning_time()
+    # data_evaluator.plot_compare_planning_time_specific()
+    # data_evaluator.plot_planning_time_with_diff()
+    data_evaluator.plot_planning_time_and_diff()
 
