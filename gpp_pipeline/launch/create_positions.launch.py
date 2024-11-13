@@ -57,14 +57,6 @@ class PipelineConfig:
 
             self.number_of_tests: int = config_data["number_of_tests"]
 
-            self.robot_spawn_position_x: float = config_data["robot_spawn_position_x"]
-            self.robot_spawn_position_y: float = config_data["robot_spawn_position_y"]
-            self.robot_spawn_orientation_yaw: float = config_data["robot_spawn_orientation_yaw"]
-
-            self.robot_target_position_x: float = config_data["robot_target_position_x"]
-            self.robot_target_position_y: float = config_data["robot_target_position_y"]
-            self.robot_target_orientation_yaw: float = config_data["robot_target_orientation_yaw"]
-
 def generate_launch_description():
     pipeline_config: PipelineConfig = PipelineConfig()
     pipeline_config.import_config()
@@ -132,7 +124,8 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "use_sim_time": use_sim_time
+            "use_sim_time": use_sim_time,
+            "map_yaml_file": pipeline_config.map_name
         }.items()
     )
 
@@ -164,6 +157,7 @@ def generate_launch_description():
         name="create_position_list_node",
         output="screen"
     )
+    create_position_list_node_delayed = TimerAction(period=10.0, actions=[create_position_list_node])
 
     return LaunchDescription(
         [
@@ -178,6 +172,6 @@ def generate_launch_description():
             localization,
             navigation,
             static_tf,
-            create_position_list_node
+            create_position_list_node_delayed
         ]
     )
