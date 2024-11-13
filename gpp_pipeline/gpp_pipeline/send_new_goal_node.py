@@ -46,6 +46,8 @@ class SendNewGoalNode(Node):
 
         self._planning_attempt_index: int = self.get_parameter("planning_attempt_index").value
 
+        self._got_some_response: bool = False
+
         # with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'r') as file:
         #     self.data = yaml.safe_load(file)
         #     rejected_goal: bool = self.data["goal_rejected"]
@@ -62,6 +64,7 @@ class SendNewGoalNode(Node):
         #     self.get_logger().info("rejected goal: " + str(rejected_goal))
 
     def goal_response_callback(self, future):
+        self._got_some_response = True
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info('Goal rejected :(')
@@ -81,9 +84,11 @@ class SendNewGoalNode(Node):
     def feedback_callback(self, feedback):
         # self.get_logger().info("send_goal_timeout: Canceled")
         self._send_goal_timeout_timer.cancel()
+        self._got_some_response = True
         # self._path_planning_timeout_timer.reset()
         
     def get_result_callback(self, future):
+        self._got_some_response = True
         result = future.result().result
         status = future.result().status
         if status == GoalStatus.STATUS_SUCCEEDED:
@@ -152,6 +157,12 @@ class SendNewGoalNode(Node):
         self.get_logger().info("Path Planning timeout detected")
         # rclpy.shutdown()
         # self.destroy_node()
+
+        if not self._got_some_response:
+            with open(self._rejected_goal_path, 'w') as file:
+                data = dict()
+                data["goal_rejected"] = True
+                yaml.dump(data, file)
 
         data = None
         if os.path.isfile(self._planning_time_path):
