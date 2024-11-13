@@ -73,7 +73,8 @@ if __name__ == "__main__":
                                            "target_robot_y:=" + str(target_position["y"]),
                                            "target_robot_phi:=" + str(target_position["phi"]),
                                            "rejected_goal_path:=" + rejected_goal_path,
-                                           "planning_time_path:=" + planning_time_path], text=True)
+                                           "planning_time_path:=" + planning_time_path,
+                                           "planning_attempt_index:=" + str(experiment_counter)], text=True)
         
         # launch_process = subprocess.Popen(["ros2", "launch", "gpp_pipeline", "pipeline.launch.py", 
         #                                    "rosbag_path:=" + rosbag_path], text=True)

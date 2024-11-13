@@ -122,6 +122,11 @@ def generate_launch_description():
     target_robot_phi_arg = DeclareLaunchArgument('target_robot_phi',
                           default_value='1.0',
                           description='phi-value for the target position of the robot')
+    
+    planning_attempt_index = LaunchConfiguration('planning_attempt_index')
+    planning_attempt_index_arg = DeclareLaunchArgument('planning_attempt_index',
+                          default_value='0',
+                          description='Index of the planning attempt')
 
     # Launch of Gazebo with specified world
     world_file = PathJoinSubstitution([get_package_share_directory(pipeline_config.world_package),
@@ -219,7 +224,8 @@ def generate_launch_description():
             {"resend_goal_timeout": pipeline_config.resend_goal_timeout},
             {"path_planning_timeout": pipeline_config.path_planning_timeout},
             {"rejected_goal_path": rejected_goal_path},
-            {"planning_time_path": planning_time_path}
+            {"planning_time_path": planning_time_path},
+            {"planning_attempt_index": planning_attempt_index}
         ]
     )
     send_new_goal_delayed = TimerAction(period=20.0, actions=[send_new_goal_node])
@@ -253,6 +259,7 @@ def generate_launch_description():
             target_robot_y_arg,
             target_robot_phi_arg,
             declare_rviz_config_arg,
+            planning_attempt_index_arg,
             gz_sim,
             launch_rviz,
             # localization,

@@ -33,6 +33,8 @@ class SendNewGoalNode(Node):
         self.declare_parameter('rejected_goal_path', rclpy.Parameter.Type.STRING)
         self.declare_parameter('planning_time_path', rclpy.Parameter.Type.STRING)
 
+        self.declare_parameter('planning_attempt_index', rclpy.Parameter.Type.INTEGER)
+
         self._target_robot_x: float = self.get_parameter("target_robot_x").value
         self._target_robot_y: float = self.get_parameter("target_robot_y").value
         self._target_robot_phi: float = self.get_parameter("target_robot_phi").value
@@ -41,6 +43,8 @@ class SendNewGoalNode(Node):
         
         self._rejected_goal_path: float = self.get_parameter("rejected_goal_path").value
         self._planning_time_path: float = self.get_parameter("planning_time_path").value
+
+        self._planning_attempt_index: int = self.get_parameter("planning_attempt_index").value
 
         # with open("/home/rosjaeger/Desktop/rejected_goal.yaml", 'r') as file:
         #     self.data = yaml.safe_load(file)
@@ -100,8 +104,7 @@ class SendNewGoalNode(Node):
             data = dict()
 
         with open(self._planning_time_path, 'w') as file_w:
-            index = len(data.items())
-            data[str(index)] = diff
+            data[str(self._planning_attempt_index)] = diff
             yaml.dump(data, file_w)
 
         self.get_logger().info("shutdown now...")
@@ -158,8 +161,7 @@ class SendNewGoalNode(Node):
             data = dict()
 
         with open(self._planning_time_path, 'w') as file_w:
-            index = len(data.items())
-            data[str(index)] = -1
+            data[str(self._planning_attempt_index)] = -1
             yaml.dump(data, file_w)
 
         raise ExternalShutdownException
