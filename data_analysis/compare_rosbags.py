@@ -86,7 +86,6 @@ class DataEvaluator():
             with open(yaml_file_path, 'r') as file:
                 config_data = yaml.safe_load(file)
                 for counter in range(len(config_data.items())):
-                    print(config_data[str(counter)])
                     self._rosbag_data_extractor[key][counter].planning_time = round(config_data[str(counter)] * math.pow(10, -6), 2)
 
 
@@ -148,9 +147,51 @@ class DataEvaluator():
         plt.legend()
         plt.show()
             
+    def plot_compare_planning_time_specific(self) -> None:
+        planning_time_list: Dict[str, List[float]] = self.get_planning_time()
+
+        for key, value in planning_time_list.items():
+            linestyle: str = None
+            marker: str = "o"
+            color:str = None
+
+            if "Desktop" in key:
+                color="red"
+            elif "Cluster" in key:
+                color="blue"
+            elif "Laptop" in key:
+                color="green"
+
+            if "NavFN" in key:
+                linestyle="dotted"
+            elif "Smac" in key:
+                linestyle="dashed"
+            elif "ThetaStar" in key:
+                linestyle="dashdot"
+
+            plt.plot(value, label=key,color=color, marker=marker, linestyle=linestyle)
+
+        plt.xlabel("index")
+        plt.ylabel("planning time [us]")
+        plt.legend()
+        plt.show()
+
 if __name__ == "__main__":
-    dataset_path_list: Dict[str,str] = {"PathPlanner1": "/home/lurz-match/rosbag_data/dataset_32", 
-                                        "PathPlanner2": "/home/lurz-match/rosbag_data/dataset_33"}
+    # dataset_path_list: Dict[str,str] = {"Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_18", 
+    #                                     "Cluster - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/Smac/dataset_17",
+    #                                     "Cluster - ThetaStar": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/ThetaStar/dataset_19"}
+
+    # dataset_path_list: Dict[str,str] = {"Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_18", 
+    #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_2/dataset_18",
+    #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_3/dataset_18",
+    #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_4/dataset_18",
+    #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_5/dataset_18"}
+
+    dataset_path_list: Dict[str,str] = {"Desktop - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/NavFN/dataset_170",
+                                        "Desktop - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/Smac/dataset_171",
+                                        "Desktop - ThetaStar": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/ThetaStar/dataset_169",
+                                        "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_22",
+                                        "Cluster - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/Smac/dataset_23"}
 
     # Get all rosbags in the dataset
     # rosbag_names: List[str] = [folder_name for folder_name in os.listdir(path_to_dataset) if os.path.isdir(os.path.join(path_to_dataset, folder_name))]
@@ -159,8 +200,8 @@ if __name__ == "__main__":
 
     data_evaluator: DataEvaluator = DataEvaluator(dataset_path_list)
     data_evaluator.create_data_extractor()
-    # data_evaluator.calc_path_length()
+    data_evaluator.calc_path_length()
     data_evaluator.read_planning_time_data()
     # data_evaluator.plot_compare_path_length()
-    data_evaluator.plot_compare_planning_time()
+    data_evaluator.plot_compare_planning_time_specific()
 
