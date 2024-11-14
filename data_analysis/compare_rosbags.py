@@ -33,10 +33,18 @@ class RosBagDataExtractor():
             # connections = [x for x in reader.connections if x.topic == '/goal_pose']
             # for connection, timestamp, rawdata in reader.messages(connections=connections):
             #     self.goal_pose = reader.deserialize(rawdata, connection.msgtype)
-            
+
             connections = [x for x in reader.connections if x.topic == '/plan']
             for connection, timestamp, rawdata in reader.messages(connections=connections):
                 self.path = reader.deserialize(rawdata, connection.msgtype)
+
+            connections = [x for x in reader.connections if x.topic == '/global_costmap/costmap']
+            for connection, timestamp, rawdata in reader.messages(connections=connections):
+                self.costmap = reader.deserialize(rawdata, connection.msgtype)
+
+            connections = [x for x in reader.connections if x.topic == '/map']
+            for connection, timestamp, rawdata in reader.messages(connections=connections):
+                self.map = reader.deserialize(rawdata, connection.msgtype)
 
     def calc_path_length(self) -> float: 
         if self.path is None:
@@ -76,7 +84,7 @@ class DataEvaluator():
             rosbag_extractor_list = list()
             for rosbag_path in absolut_rosbag_path_list:
                 data_extractor: RosBagDataExtractor = RosBagDataExtractor(rosbag_path)
-                # data_extractor.read_rosbag()
+                data_extractor.read_rosbag()
                 rosbag_extractor_list.append(data_extractor)
             self._rosbag_data_extractor[key] = rosbag_extractor_list
 
@@ -176,12 +184,20 @@ class DataEvaluator():
     def plot_compare_path_length(self) -> None:
         path_length_list: Dict[str, List[float]] = self.get_path_length()
 
-        for key, value in path_length_list.items():
-            plt.plot(value, label=key, marker="o", linestyle="dotted")
+        figsize_inches = (83 / 25.4, 50 / 25.4)
+        plt.figure(figsize=figsize_inches)
+        plt.rcParams.update({'font.size': 10})
+        plt.rcParams['font.family'] = 'Times New Roman'
 
-        plt.xlabel("index")
-        plt.ylabel("path length [m]")
-        plt.legend()
+        for key, value in path_length_list.items():
+            plt.plot(value, label=key, marker="o", linestyle="None", color="#018571")
+
+        plt.xlabel("Index")
+        plt.ylabel("Path Length [m]")
+        # plt.legend()
+
+        plt.savefig("/home/lurz-match/Desktop/test.png", format='png', bbox_inches='tight')
+
         plt.show()
 
     def plot_compare_planning_time(self) -> None:
@@ -238,6 +254,7 @@ class DataEvaluator():
         figsize_inches = (83 / 25.4, 50 / 25.4)
         plt.figure(figsize=figsize_inches)
         plt.rcParams.update({'font.size': 10})
+        plt.rcParams['font.family'] = 'Times New Roman'
 
         plt.bar(index_list, mean_value_list, width=1.0, label="Mean Planning Time", color="#018571")
         plt.bar([i for i in index_list], max_error_list, width=1.0, label="Max Time Difference", color="#a6611a")
@@ -285,6 +302,36 @@ class DataEvaluator():
         plt.legend()
         plt.show()
 
+    def plot_costmap(self) -> None:
+        figsize_inches = (83 / 25.4, 50 / 25.4)
+        plt.figure(figsize=figsize_inches)
+        plt.rcParams.update({'font.size': 10})
+        plt.rcParams['font.family'] = 'Times New Roman'
+        
+        first_extractor:RosBagDataExtractor = next(iter(self._rosbag_data_extractor.values()))[0]
+        cost_map = [first_extractor.map.data[i:i + first_extractor.map.info.width] for i in range(0, len(first_extractor.map.data), first_extractor.map.info.width)]
+        
+        plt.imshow(cost_map, cmap='binary', interpolation='nearest')
+
+        for extractor in next(iter(self._rosbag_data_extractor.values())):
+            x_values: List[float] = list()
+            y_values: List[float] = list()
+            for pose in extractor.path.poses:
+                x_values.append((pose.pose.position.x / first_extractor.map.info.resolution) - (first_extractor.map.info.origin.position.x / first_extractor.map.info.resolution))
+                y_values.append((pose.pose.position.y / first_extractor.map.info.resolution) - (first_extractor.map.info.origin.position.y / first_extractor.map.info.resolution))
+
+            plt.plot(x_values, y_values, color='#018571', linestyle='-', marker='')
+
+        # Add labels and title
+        plt.title("2D Cost Map")
+        plt.xlabel("X-axis")
+        plt.ylabel("Y-axis")
+        
+        plt.savefig("/home/lurz-match/Desktop/test.png", format='png', bbox_inches='tight')
+
+        # Show the plot
+        plt.show()
+
 if __name__ == "__main__":
     # dataset_path_list: Dict[str,str] = {"Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_18", 
     #                                     "Cluster - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/Smac/dataset_17",
@@ -299,8 +346,8 @@ if __name__ == "__main__":
     dataset_path_list: Dict[str,str] = {"Cluster - NavFN - c1": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_1/dataset_22", 
                                         "Cluster - NavFN - c2": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_2/dataset_25",
                                         "Cluster - NavFN - c3": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_3/dataset_26",
-                                        "Cluster - NavFN - c4": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_4/dataset_27"}
-    #                                     "Cluster - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Cluster/NavFN/cycle_5/dataset_18"}
+                                        "Cluster - NavFN - c4": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_4/dataset_27",
+                                        "Cluster - NavFN - c5": "/home/lurz-match/Desktop/CirpDesign2025/Cluster/NavFN/cycle_5/dataset_30"}
 
     # dataset_path_list: Dict[str,str] = {"Desktop - NavFN": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/NavFN/dataset_170",
     #                                     "Desktop - Smac": "/home/rosjaeger/Desktop/CirpDesign2025/Desktop/Smac/dataset_171",
@@ -317,9 +364,10 @@ if __name__ == "__main__":
     data_evaluator.create_data_extractor()
     data_evaluator.calc_path_length()
     data_evaluator.read_planning_time_data()
-    # data_evaluator.plot_compare_path_length()
+    data_evaluator.plot_compare_path_length()
     # data_evaluator.plot_compare_planning_time()
     # data_evaluator.plot_compare_planning_time_specific()
     # data_evaluator.plot_planning_time_with_diff()
-    data_evaluator.plot_planning_time_and_diff()
+    # data_evaluator.plot_planning_time_and_diff()
+    # data_evaluator.plot_costmap()
 
