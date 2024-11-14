@@ -189,8 +189,12 @@ class DataEvaluator():
         plt.rcParams.update({'font.size': 10})
         plt.rcParams['font.family'] = 'Times New Roman'
 
-        for key, value in path_length_list.items():
-            plt.plot(value, label=key, marker="o", linestyle="None", color="#018571")
+        path_length = next(iter(path_length_list.values()))
+        index_list: List[int] = range(len(path_length))
+
+        # for key, value in path_length_list.items():
+        #     plt.plot(value, label=key, marker="o", linestyle="None", color="#018571")
+        plt.bar(index_list, path_length, width=1.0, label="Path Length 1-5", color="#018571")
 
         plt.xlabel("Index")
         plt.ylabel("Path Length [m]")
