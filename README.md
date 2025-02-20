@@ -1,4 +1,4 @@
-# GP-Pipeline
+# GPP-Benchmark
 
 ## Setup
 Either manually export environmental variables each session or add them to the .bashrc-file:
